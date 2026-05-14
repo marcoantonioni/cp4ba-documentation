@@ -90,6 +90,16 @@ Advanced logging system documentation for bash scripts with enterprise-grade fea
 
 ---
 
+## 📝 CP4BA Properties Configuration Guide
+
+### [CP4BA Configs](properties-relationships/configs-relationships.md)
+
+Entity relationship diagrams for all property files in the `cp4ba-installations/configs` folders, showing how each configuration file references external files (.yaml, .yml, .sql, .ldif).
+
+**Topics:** Configuration
+
+---
+
 ## 📖 Additional Resources
 
 For more detailed information about specific components, refer to the individual README files in each component directory:
