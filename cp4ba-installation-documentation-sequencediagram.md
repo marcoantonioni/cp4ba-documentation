@@ -686,6 +686,7 @@ sequenceDiagram
 | CP4BA_INST_DB | Enable database deployment | Yes |
 | CP4BA_INST_DB_USE_EDB | Use EDB PostgreSQL (true) or OSS (false) | No |
 | CP4BA_INST_DB_INSTANCES | Number of database instances | Yes |
+| CP4BA_INST_DB_ONLY_SSL | Use only TLS for DB access | No (if not set use TLS only for External Postgres DB) |
 | CP4BA_INST_DB_1_CR_NAME | Database cluster name | Yes |
 | CP4BA_INST_DB_1_TEMPLATE | SQL template file | Yes |
 | CP4BA_INST_DB_SERVER_PORT | Database port | Yes |
