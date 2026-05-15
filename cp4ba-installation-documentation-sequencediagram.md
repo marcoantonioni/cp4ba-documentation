@@ -446,6 +446,21 @@ sequenceDiagram
 
 **Purpose**: Deploy PostgreSQL database clusters
 
+#### Databases and TLS configuration
+
+To use a single database configured with TLS use this two-variable configuration:
+```bash
+export CP4BA_INST_DB_ONLY_SSL="true"
+export CP4BA_INST_DB_1_SERVICE="${CP4BA_INST_DB_1_CR_NAME_SSL}-rw"
+```
+
+To use TLS with external Postgres databases for BTS/Zen/IM (mandatory) and other databases with clear text transport, use this configuration of the two variables:
+
+```bash
+export CP4BA_INST_DB_ONLY_SSL="false"
+export CP4BA_INST_DB_1_SERVICE="${CP4BA_INST_DB_1_CR_NAME}-rw"
+```
+
 **Key Functions**:
 - `_deployDBClusterEDB()`: Deploy EDB PostgreSQL using operator
 - `_deployPostgresNoSSL()`: Deploy open source PostgreSQL without SSL
