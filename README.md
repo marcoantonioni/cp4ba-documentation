@@ -2,6 +2,8 @@
 
 📚 **Comprehensive documentation for IBM Cloud Pak for Business Automation deployment, configuration, and management scripts.**
 
+Last update 2026-05-15
+
 ---
 
 ## 📥 Installation Guide
