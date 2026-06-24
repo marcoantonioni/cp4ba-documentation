@@ -2,7 +2,9 @@
 
 📚 **Comprehensive documentation for IBM Cloud Pak for Business Automation deployment, configuration, and management scripts.**
 
-Last update 2026-05-15
+https://github.com/marcoantonioni/cp4ba-installations
+
+Last update 2026-06-24
 
 ---
 

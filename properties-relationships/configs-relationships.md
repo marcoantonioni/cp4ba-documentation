@@ -661,8 +661,3 @@ graph LR
 - **.conf** - PostgreSQL configuration files
 
 ---
-
-*Document generated on: 2026-04-02*  
-*Source folder: cp4ba-installations/configs25.0.1*  
-*Total configurations analyzed: 16*
-
