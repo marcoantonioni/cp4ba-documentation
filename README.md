@@ -102,6 +102,25 @@ Entity relationship diagrams for all property files in the `cp4ba-installations/
 
 ---
 
+## 📖 IBM Cloud Pak for Business Automation (CP4BA) - Knowledge Base
+[CP4BA v25](knowledge-bases/knowledge-v25.md)
+
+## 📖 CP4BA Recipes
+
+Let me introduce CP4BA Chef
+
+![alt text](OneClickChef.png "Hello I'm CP4BA Chef")
+
+[Recipe 1: BAW Authoring with BAI](recipes/recipe-authoring-baw-bai.md)
+
+[Recipe 2: BAW Runtime with BAI](recipes/recipe-runtime-baw-bai.md)
+
+[Recipe 3: Multiple BAW Runtimes with PFS](recipes/recipe-runtime-baw-double-pfs.md)
+
+[Recipe 4: WFPS Authoring with PFS and BAI](recipes/recipe-authoring-wfps-pfs-bai.md)
+
+[Recipe 5: WFPS Runtime Foundation with PFS and BAI](recipes/recipe-runtime-wfps-pfs-bai-foundation.md)
+
 ## 📖 Additional Resources
 
 For more detailed information about specific components, refer to the individual README files in each component directory:
@@ -113,5 +132,6 @@ For more detailed information about specific components, refer to the individual
 - `cp4ba-wfps/README.md` - WfPS configuration and examples
 - `cp4ba-utilities/README.md` - Utilities overview
 - `cp4ba-logger/README.md` - Logger implementation details
+- `cp4ba-config-tune/README.md` - Configuration & Tunining
 
 ---
