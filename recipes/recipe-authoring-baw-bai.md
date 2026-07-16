@@ -136,10 +136,10 @@ bastudio_configuration:
 
 **Resource Configuration**:
 ```properties
-CP4BA_INST_BAS_1_REPLICAS="1"
-CP4BA_INST_BAS_1_LIMITS_CPU="5000m"
-CP4BA_INST_BAS_1_LIMITS_MEMORY="3096Mi"
-CP4BA_INST_BAS_1_LOGS_TRACE="*=info"
+CP4BA_INST_1_REPLICAS="1"
+CP4BA_INST_1_LIMITS_CPU="5000m"
+CP4BA_INST_1_LIMITS_MEMORY="3096Mi"
+CP4BA_INST_1_LOGS_TRACE="*=info"
 ```
 
 ### 3. FileNet Content Manager (FNCM)
@@ -244,10 +244,10 @@ CP4BA_RUN_WORKPLACE_AGENT="${CP4BA_INST_GENAI_ENABLED}"
 
 **GenAI Configuration** (requires Watson X):
 ```properties
-CP4BA_INST_BAS_GENAI_ENABLED="false"  # Set to true to enable
-CP4BA_INST_BAS_GENAI_WX_APIKEY=""     # Watson X API key
-CP4BA_INST_BAS_GENAI_WX_PRJ_ID=""     # Watson X project ID
-CP4BA_INST_BAS_GENAI_WX_URL_PROVIDER="https://us-south.ml.cloud.ibm.com"
+CP4BA_INST_GENAI_ENABLED="false"  # Set to true to enable
+CP4BA_INST_GENAI_WX_APIKEY=""     # Watson X API key
+CP4BA_INST_GENAI_WX_PRJ_ID=""     # Watson X project ID
+CP4BA_INST_GENAI_WX_URL_PROVIDER="https://us-south.ml.cloud.ibm.com"
 ```
 
 ---
@@ -793,8 +793,8 @@ baw_configuration:
 
 **Resource Adjustments**:
 ```properties
-CP4BA_INST_BAS_1_LIMITS_CPU="8000m"
-CP4BA_INST_BAS_1_LIMITS_MEMORY="6144Mi"
+CP4BA_INST_1_LIMITS_CPU="8000m"
+CP4BA_INST_1_LIMITS_MEMORY="6144Mi"
 ```
 
 ### Additional Object Stores
@@ -810,8 +810,8 @@ CP4BA_INST_CPE_OBJSTORAGE_CUSTOM1_CONN_NAME="CUSTOM1_connection"
 Enable AI assistants:
 ```properties
 CP4BA_INST_GENAI_ENABLED=true
-CP4BA_INST_BAS_GENAI_WX_APIKEY="your-api-key"
-CP4BA_INST_BAS_GENAI_WX_PRJ_ID="your-project-id"
+CP4BA_INST_GENAI_WX_APIKEY="your-api-key"
+CP4BA_INST_GENAI_WX_PRJ_ID="your-project-id"
 ```
 
 ### External Services
