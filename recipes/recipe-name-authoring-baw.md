@@ -203,9 +203,9 @@ export CP4BA_INST_GIT_TOKEN="<your-github-personal-access-token>"
 ### Standard BAW Authoring
 
 ```bash
-_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
 _VV=26.0.0
 _KK=26.0.0
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
 CONFIG_FILE=${_PTC}/env1-authoring-baw.properties
 ./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
 ```
@@ -215,9 +215,9 @@ CONFIG_FILE=${_PTC}/env1-authoring-baw.properties
 ```bash
 export CP4BA_INST_GIT_TOKEN="<your-github-personal-access-token>"
 
-_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
 _VV=26.0.0
 _KK=26.0.0
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
 CONFIG_FILE=${_PTC}/env1-authoring-baw-cicd.properties
 ./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
 ```
@@ -229,9 +229,9 @@ export CP4BA_INST_GENAI_ENABLED="true"
 export CP4BA_INST_GENAI_WX_APIKEY="<your-ibm-cloud-api-key>"
 export CP4BA_INST_GENAI_WX_PRJ_ID="<your-watsonx-project-id>"
 
-_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
 _VV=26.0.0
 _KK=26.0.0
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
 CONFIG_FILE=${_PTC}/env1-authoring-baw-genai.properties
 ./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
 ```

@@ -318,9 +318,9 @@ This is the **only** installation script to be used for end-to-end deployment. I
 
 ```bash
 # Standard one-shot: install Case Manager automatically
-_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
 _VV=26.0.0
 _KK=26.0.0
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
 CONFIG_FILE=${_PTC}/env1-authoring-baw.properties
 ./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
 
