@@ -4,7 +4,7 @@
 
 https://github.com/marcoantonioni/cp4ba-installations
 
-Last update 2026-08-05
+Last update 2026-08-21
 
 ---
 
@@ -105,7 +105,7 @@ Entity relationship diagrams for all property files in the `cp4ba-installations/
 ---
 
 ## 📖 IBM Cloud Pak for Business Automation (CP4BA) - Knowledge Base
-[CP4BA v25](knowledge-bases/knowledge-v25.md)
+[CP4BA](knowledge-bases/knowledge.md)
 
 ## 📖 CP4BA Recipes
 
@@ -122,6 +122,23 @@ Let me introduce CP4BA Chef
 [Recipe 4: WFPS Authoring with PFS and BAI](recipes/recipe-authoring-wfps-pfs-bai.md)
 
 [Recipe 5: WFPS Runtime Foundation with PFS and BAI](recipes/recipe-runtime-wfps-pfs-bai-foundation.md)
+
+[Recipe 6: ADS Authoring](recipes/recipe-name-authoring-decision-ads.md)
+
+[Recipe 7: ADS Authoring with BAI](recipes/recipe-name-authoring-decision-ads-bai.md)
+
+[Recipe 8: ADS Runtime](recipes/recipe-name-decision-ads.md)
+
+[Recipe 9: ADS Runtime with BAI](recipes/recipe-name-decision-ads-bai.md)
+
+[Recipe 10: ODM Authoring](recipes/recipe-name-authoring-decision-odm.md)
+
+[Recipe 11: ODM Authoring with BAI](recipes/recipe-name-authoring-decision-odm-bai.md)
+
+[Recipe 12: ODM Runtime](recipes/recipe-name-decision-odm.md)
+
+[Recipe 13: ODM Runtime with BAI](recipes/recipe-name-decision-odm-bai.md)
+
 
 ## 📖 Additional Resources
 

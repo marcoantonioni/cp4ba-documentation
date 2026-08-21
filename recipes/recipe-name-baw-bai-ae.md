@@ -184,9 +184,9 @@ CPE object stores include BAWINS1AEOS (Application Engine OS) and BAWINS1APP (Ap
 As a reference, the closest applicable command would be:
 
 ```bash
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
 _VV=26.0.0
 _KK=26.0.0
-_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
 # CONFIG_FILE must be created with CP4BA_INST_CR_TEMPLATE pointing to cp4ba-cr-ref-baw-bai-ae.yaml
 # and AE persistence variables enabled
 CONFIG_FILE=${_PTC}/env1-runtime-baw-bai-ae.properties

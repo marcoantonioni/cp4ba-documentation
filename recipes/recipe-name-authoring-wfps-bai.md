@@ -204,9 +204,9 @@ CP4BA_INST_BAI_OBJECTSTORE_CONTENT_EVENT_ENABLED="true"
 ## Installation Command
 
 ```bash
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
 _VV=26.0.0
 _KK=26.0.0
-_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
 CONFIG_FILE=${_PTC}/env1-authoring-wfps-pfs-bai.properties
 ./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
 ```
