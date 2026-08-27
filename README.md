@@ -4,7 +4,7 @@
 
 https://github.com/marcoantonioni/cp4ba-installations
 
-Last update 2026-08-21
+Last update 2026-08-27
 
 ---
 
@@ -138,6 +138,10 @@ Let me introduce CP4BA Chef
 [Recipe 12: ODM Runtime](recipes/recipe-name-decision-odm.md)
 
 [Recipe 13: ODM Runtime with BAI](recipes/recipe-name-decision-odm-bai.md)
+
+[Recipe 14: BAW Authoring + BAI + Application Engine + ADS](recipes/recipe-name-authoring-baw-bai-ae.md)
+
+[Recipe 15: RPA Runtime](recipes/recipe-name-rpa.md)
 
 
 ## 📖 Additional Resources
