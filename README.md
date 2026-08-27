@@ -139,7 +139,7 @@ Let me introduce CP4BA Chef
 
 [Recipe 13: ODM Runtime with BAI](recipes/recipe-name-decision-odm-bai.md)
 
-[Recipe 14: BAW Authoring + BAI + Application Engine + ADS](recipes/recipe-name-authoring-baw-bai-ae.md)
+[Recipe 14: BAW Authoring + BAI + Application Engine + ADS](recipes/recipe-name-authoring-baw-bai-ae-ads.md)
 
 [Recipe 15: RPA Runtime](recipes/recipe-name-rpa.md)
 
