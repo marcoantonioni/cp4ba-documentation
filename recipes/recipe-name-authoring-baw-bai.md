@@ -1,233 +1,174 @@
-# Recipe: BAW Authoring + BAI
+# Recipe: Authoring BAW + BAI (BAW Authoring with Business Automation Insights)
 
-## Overview
+**Created:** 2025-07-14T00:00:00Z  
+**Template:** `cp4ba-installations/templates26/cp4ba-cr-ref-authoring-baw-bai.yaml`  
+**Config file:** `cp4ba-installations/configs26/env1-authoring-baw-bai.properties`
 
-| Attribute | Value |
-|-----------|-------|
-| **Template file** | [`cp4ba-cr-ref-authoring-baw-bai.yaml`](../cp4ba-installations/templates26/cp4ba-cr-ref-authoring-baw-bai.yaml) |
-| **Primary config** | [`env1-authoring-baw-bai.properties`](../cp4ba-installations/configs26/env1-authoring-baw-bai.properties) |
-| **Alternate config (GenAI + PFS)** | [`env1-authoring-baw-pfs-genai.properties`](../cp4ba-installations/configs26/env1-authoring-baw-pfs-genai.properties) |
-| **CP4BA Version** | 26.0.0 |
-| **Deployment type** | Production (Authoring mode) |
-| **Platform** | OCP |
-| **Profile size** | small |
+---
 
-## Purpose
+## Description
 
-This recipe deploys a **complete BAW Authoring environment** that extends the basic authoring recipe with:
-- **Business Automation Insights (BAI)**: Real-time event processing, Flink-based analytics, and OpenSearch dashboards
-- **Kafka**: Event streaming infrastructure for BAI
-- **OpenSearch**: Analytics data store
-- **PFS (Process Federation Server)**: For federated task management (enabled by default)
-- **AI Assistants** (optional via GenAI variant)
+The **Authoring BAW + BAI** recipe extends the basic BAW authoring recipe by adding:
 
-Two config variants are provided:
+- **Business Automation Insights (BAI)** – real-time process analytics and dashboards
+- **Apache Kafka** – event streaming infrastructure
+- **OpenSearch** – analytics data store and search
+- **Process Federation Server (PFS)** – federated task list
 
-- **`env1-authoring-baw-bai`**: Full BAW Authoring + BAI + PFS stack, GenAI disabled by default.
-- **`env1-authoring-baw-pfs-genai`**: Same capabilities plus GenAI/watsonx.ai integration activated.
+This recipe is the recommended choice when you need both BAW process/case authoring capability and operational analytics for process performance monitoring.
+
+---
 
 ## CP4BA Capabilities
 
-### Patterns
+| Capability | Enabled | Notes |
+|---|---|---|
+| Foundation / CPFS | ✅ | Always included |
+| BAW Authoring (BPM + Case) | ✅ | `baw_authoring` optional component |
+| Business Automation Studio (BAS) | ✅ | `bas` optional component |
+| IBM FileNet CPE | ✅ | Required by BAW |
+| IBM Content Navigator | ✅ | Required by BAW |
+| GraphQL API | ✅ | `CP4BA_INST_GRAPHQL=true` |
+| Business Automation Insights (BAI) | ✅ | `bai` optional component |
+| Process Federation Server (PFS) | ✅ | `pfs` optional component |
+| Kafka | ✅ | `kafka` optional component |
+| OpenSearch | ✅ | `opensearch` optional component |
+| Workflow AI Assistant | ✅ | When `CP4BA_INST_GENAI_ENABLED=true` |
+| Workplace AI Assistant | ✅ | When `CP4BA_INST_GENAI_ENABLED=true` |
+| ADS | ❌ | Not included |
+| ODM | ❌ | Not included |
+| Application Engine | ❌ | Not included |
+
+---
+
+## Configuration Details
+
+### Deployment Patterns & Optional Components
 
 ```
-foundation,workflow
+sc_deployment_patterns: foundation,workflow
+sc_optional_components: baw_authoring,bas,bai,pfs,kafka,opensearch,workflow_assistant,workplace_assistant
+Namespace: cp4ba-baw-bai-auth
 ```
 
-### Optional Components
+### Key CR Sections
 
-```
-baw_authoring,bas,bai,pfs,kafka,opensearch,workflow_assistant,workplace_assistant
-```
+The template includes the following major CR sections:
+- `shared_configuration` – licenses, storage, image repo, IAM admin, encryption keys
+- `ldap_configuration` – OpenLDAP (Custom type) with SCIM for IAM sync
+- `datasource_configuration` – PostgreSQL connections for GCD, ICN, DOCS, DOS, TOS, CONTENT, OS1, AEOS, CHOS, APP, AWS, AWSDOCS
+- `initialize_configuration` – LDAP realm, FileNet domain, object stores, ICN desktop
+- `bai_configuration` – BAI event emitters, Flink, BPC dashboards, workforce insights
+- `baml_configuration` – Workforce insights ML models, intelligent task prioritization
+- `bastudio_configuration` – BAS admin user, DB connections, playback server, TLS, resource limits
+- `workflow_authoring_configuration` – Case, content integration, federation, storage, business events, custom XML
+- `workflow_assistant_configuration` – GenAI authoring and workplace agents
+- `ecm_configuration` – CPE + GraphQL
+- `navigator_configuration` – IBM Content Navigator
 
-> `workflow_assistant` and `workplace_assistant` are enabled only when `CP4BA_INST_GENAI_ENABLED=true`.
-
-## Capability Configuration Details
-
-### Foundation (CPFS + Zen + IAM)
-
-Always enabled. See [knowledge base §4](../knowledge-bases/knowledge.md#4-shared-configuration-concepts).
-
-### BAW Authoring
-
-Full BAW Authoring with BPM + Case + Content integration. Configured via `workflow_authoring_configuration`.
-
-Key settings include:
-- Content integration: CPE for document storage, Case object stores (DOS, DOCS, TOS, CONTENT)
-- Federation config: PFS integration for federated task view
-- Application Engine embedded inside authoring
-- Custom XML secrets for Liberty and Lombardi customization
-- GenAI CSP headers configured for watsonx domains
-
-```yaml
-workflow_authoring_configuration:
-  content_integration:
-    # CPE integration settings
-  case:
-    # Case object store settings
-  appengine:
-    # Embedded Application Engine
-  storage:
-    use_dynamic_provisioning: true
-    size_for_filestore: "20Gi"
-  federation_config:
-    # PFS federation settings
-  business_event:
-    # BAI business event emitter settings
-```
-
-### BAS (Business Automation Studio)
-
-Identical to the base authoring recipe. See [recipe-name-authoring-baw.md](recipe-name-authoring-baw.md).
-
-### ECM / Content Platform Engine (CPE) + ICN
-
-Enabled as part of the workflow pattern. Identical object store topology as the base authoring recipe.
-
-### BAI (Business Automation Insights)
-
-Enabled via optional component `bai`. Configured via `bai_configuration`:
+### BAI Configuration (key settings)
 
 ```yaml
 bai_configuration:
   business_performance_center:
-    install: true                           # Workforce Insights dashboards
-    workforce_insights_secret: custom-bpc-workforce-secret
-
+    all_users_access: true       # all users can access BPC
+    workforce_insights: true     # workforce insights dashboard
   bpmn:
-    install: true                           # BPMN process analytics
-    force_opensearch_timeseries: true
-    end_aggregation_delay: 10000
-
-  bawadv:
-    install: false                          # BAW Advanced analytics
+    install: true
+    time_series: true            # BPMN time-series analytics
   content:
-    install: true                           # Content events analytics
-  event_forwarder:
-    install: false
-  flink:
-    additional_task_managers: 1
-    create_route: true
+    install: true                # content events
   icm:
-    install: true                           # Case management analytics
+    install: true                # ICM/Case events
   navigator:
-    install: true                           # Navigator analytics
+    install: true                # Navigator events
+  bawadv:
+    install: false
   ads:
     install: false
   odm:
     install: false
+  event_forwarder:
+    kafka: true                  # egress to Kafka
+  flink:
+    create_route: true
+    additional_task_managers: 1
 ```
 
-### BAML (Business Automation Machine Learning)
+### Databases Required (PostgreSQL)
 
-```yaml
-baml_configuration:
-  workforce_insights:
-    replicas: 1
-    resources:
-      limits:
-        cpu: '1'
-        memory: 1024Mi
-      requests:
-        cpu: '1'
-        memory: 1024Mi
-  intelligent_task_prioritization:
-    retrain_model_schedule: "*/30 * * * *"
+| Database | Purpose |
+|---|---|
+| `baw_bai_auth_gcd` | Global Configuration Database |
+| `baw_bai_auth_icn` | IBM Content Navigator |
+| `baw_bai_auth_bawdocs` | BAW Documents object store |
+| `baw_bai_auth_bawdos` | BAW Design object store |
+| `baw_bai_auth_bawtos` | BAW Target object store |
+| `baw_bai_auth_content` | Content object store |
+| `baw_bai_auth_os1` | Custom object store |
+| `baw_bai_auth_baw_1` | BAW main process database |
+| `baw_bai_auth_chos` | Case History object store |
+| `baw_bai_auth_appdb` | Application DB |
+| `baw_bai_auth_awsdb` | Advanced Work Services DB |
+| `baw_bai_auth_awsdocs` | Advanced Work Services docs |
+| `baw_bai_auth_aaedb` | Application Engine DB |
+| `baw_bai_auth_aeos` | App Engine Object Store |
+
+### Storage
+
+```
+CP4BA_INST_SC_FILE: ocs-external-storagecluster-cephfs
+CP4BA_INST_SC_BLOCK: ocs-external-storagecluster-ceph-rbd
+CP4BA_INST_BAW_STORAGE_SIZE: 20Gi
 ```
 
-### PFS (Process Federation Server)
+---
 
-Process Federation Server is deployed via the `cp4ba-process-federation-server` companion tooling using the following configuration:
+## Installation Commands
+
+### Standard
 
 ```bash
-CP4BA_INST_PFS=true
-CP4BA_INST_PFS_NAME="pfs-demo"
-CP4BA_INST_PFS_NAMESPACE="${CP4BA_INST_NAMESPACE}"
-CP4BA_INST_PFS_REPLICAS=2
-CP4BA_INST_PFS_RES_REQS_CPU="1000m"
-CP4BA_INST_PFS_RES_REQS_MEMORY="1024Mi"
-CP4BA_INST_PFS_RES_LIMITS_REQS_CPU="2000m"
-CP4BA_INST_PFS_RES_LIMITS_REQS_MEMORY="4Gi"
-```
-
-### AI Assistants (GenAI + PFS variant only)
-
-See [recipe-name-authoring-baw.md §AI Assistants](recipe-name-authoring-baw.md) for details.
-
-## Database Configuration
-
-Uses BAW Authoring SQL template: `db-statements-ref-baw-authoring.sql`
-
-Full database set (same as base authoring recipe plus AE persistence databases):
-
-| Database | Variable | Purpose |
-|----------|----------|---------|
-| `*_baw_1` | `CP4BA_INST_BAS_1_DB_BAW_NAME` | BAW authoring / BAS |
-| `*_appdb` | `CP4BA_INST_APP_DB_NAME` | Playback Server |
-| `*_aaedb` | `CP4BA_INST_AE_DB_NAME` | Application Engine |
-| `*_aeos` | `CP4BA_INST_AEOS_DB_NAME` | Application Engine object store |
-| `*_gcd` | `CP4BA_INST_GCD_DB_NAME` | FileNet GCD |
-| `*_icn` | `CP4BA_INST_ICN_DB_NAME` | Content Navigator |
-| `*_bawdocs` | `CP4BA_INST_DOCS_DB_NAME` | BAW DOCS object store |
-| `*_bawdos` | `CP4BA_INST_DOS_DB_NAME` | BAW DOS object store |
-| `*_bawtos` | `CP4BA_INST_TOS_DB_NAME` | BAW TOS / Case object store |
-| `*_content` | `CP4BA_INST_CONTENT_DB_NAME` | Content object store |
-| `*_chos` | `CP4BA_INST_CHOS_DB_NAME` | Case history object store |
-| `*_os1` | `CP4BA_INST_OS1_DB_NAME` | Additional object store |
-
-BAI event emitter configuration:
-```bash
-CP4BA_INST_BAI_EVENT_EMITTER_UNIQUE_ID="EEID1"
-CP4BA_INST_BAI_EVENT_EMITTER_DATE_SQL="20240301T000000Z"
-CP4BA_INST_BAI_OBJECTSTORE_CONTENT_EVENT_ENABLED="true"
-```
-
-## Infrastructure
-
-| Component | Configuration |
-|-----------|--------------|
-| PostgreSQL | 1 instance, SSL-enabled, in-namespace |
-| OpenLDAP | 1 instance, in-namespace |
-| Storage (File) | `ocs-external-storagecluster-cephfs` |
-| Storage (Block) | `ocs-external-storagecluster-ceph-rbd` |
-| DB Storage | 10 Gi |
-| BAW File Store | 20 Gi (dynamic) |
-
-Network policy: uses `allow-all` template by default:
-```bash
-CP4BA_INST_NP_TEMPLATE_1="../templates-networkpolicies/mutually-exclusive/my-network-policy-sample-allow-all.yaml"
-```
-
-## Installation Command
-
-### Standard BAW Authoring + BAI
-
-```bash
+_VV=26.0.2
+_KK=26.0.0-IF002
 _PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
-_VV=26.0.0
-_KK=26.0.0
 CONFIG_FILE=${_PTC}/env1-authoring-baw-bai.properties
 ./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
 ```
 
-### GenAI + PFS Variant
+*Last tested: 20260806*
+
+### With PFS GenAI
 
 ```bash
 export CP4BA_INST_GENAI_ENABLED="true"
-export CP4BA_INST_GENAI_WX_APIKEY="<your-ibm-cloud-api-key>"
+export CP4BA_INST_GENAI_WX_APIKEY="<your-watsonx-api-key>"
 export CP4BA_INST_GENAI_WX_PRJ_ID="<your-watsonx-project-id>"
 
+_VV=26.0.2
+_KK=26.0.0-IF002
 _PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
-_VV=26.0.0
-_KK=26.0.0
 CONFIG_FILE=${_PTC}/env1-authoring-baw-pfs-genai.properties
 ./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
 ```
 
-## References
+*Last tested: 20260720*
 
-- [BAW Authoring Parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=parameters-business-automation-workflow-authoring)
-- [BAI Event Processing Parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=baip-event-processing-parameters)
-- [CP4BA 26.0.0 Documentation](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0)
-- [IBM BAW Documentation](https://www.ibm.com/docs/en/baw/26.0.x)
-- [PFS Production Deployment](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=deployments-installing-cp4ba-process-federation-server-production-deployment)
+### Parameters Reference
+
+| Parameter | Description |
+|---|---|
+| `-c ${CONFIG_FILE}` | Path to the properties configuration file |
+| `-m` | Install a fresh CP4BA Case Package Manager |
+| `-v ${_VV}` | CP4BA version (e.g., `26.0.2`) |
+| `-k ${_KK}` | cert-kubernetes version (e.g., `26.0.0-IF002`) |
+
+---
+
+## Notes
+
+- BAI is enabled (`CP4BA_INST_BAI_ENABLE=true`) and workforce insights are active.
+- The BAI event emitter ID is `EEID1` with start date `20240301T000000Z`.
+- Object store content events are enabled (`CP4BA_INST_BAI_OBJECTSTORE_CONTENT_EVENT_ENABLED=true`).
+- Flink task manager: 1 additional task manager, route exposed for admin access.
+- This recipe is the most common choice for BAW authoring environments with full observability.

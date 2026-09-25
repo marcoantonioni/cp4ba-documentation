@@ -1,210 +1,114 @@
-# Recipe: ADS Runtime (Decision Intelligence — Runtime Only)
+# Recipe: Decision ADS (ADS Runtime only)
 
-> **Recipe suffix**: `decision-ads`  
-> **Template**: `cp4ba-installations/templates26/cp4ba-cr-ref-decision-ads.yaml`  
-> **Config file**: `cp4ba-installations/configs26/env1-runtime-ads.properties`  
-> **CP4BA Version**: 26.0.0  
-> **Deployment type**: Production  
-> **Platform**: OpenShift Container Platform (OCP)
+**Created:** 2025-07-14T00:00:00Z  
+**Template:** `cp4ba-installations/templates26/cp4ba-cr-ref-decision-ads.yaml`  
+**Config file:** `cp4ba-installations/configs26/env1-runtime-ads.properties`
 
 ---
 
-## Purpose
+## Description
 
-This recipe deploys an **ADS (Automation Decision Services) Runtime-only** environment. It deploys only the **Decision Runtime** (execution engine) without the Decision Designer (authoring IDE) or BAS.
+The **Decision ADS** recipe deploys IBM Decision Intelligence Client Managed Software (ADS) in **runtime-only mode**. It provides only the **ADS Decision Runtime** execution engine without the authoring tools (Decision Designer). 
 
-This is the recommended pattern for **production execution namespaces** where decisions are deployed from a separate authoring environment. The runtime receives and executes decision archives published from an ADS Authoring instance.
+This recipe is suitable for production environments where decision services have been authored and deployed from a separate ADS Authoring environment.
 
 ---
 
-## CP4BA Capabilities Deployed
+## CP4BA Capabilities
 
-| Capability | Status | Description |
+| Capability | Enabled | Notes |
 |---|---|---|
-| **Foundation (CPFS / Zen / IAM)** | ✅ Active | Platform services, web console, identity management |
-| **ADS Decision Designer** | ❌ Disabled | `decision_designer.enabled: false` |
-| **ADS Decision Runtime** | ✅ Active | Executes deployed decision archives |
-| **Business Automation Studio (BAS)** | ❌ Not included | Not needed for runtime-only |
-| **BAI (Business Automation Insights)** | ❌ Not included | BAI event emitter present but disabled |
-| **OpenSearch / Kafka** | ❌ Not included | Not deployed in this recipe |
+| Foundation / CPFS | ✅ | Always included |
+| ADS Decision Runtime | ✅ | `ads_runtime` optional component |
+| ADS Decision Designer | ❌ | Not included (runtime only) |
+| Business Automation Studio (BAS) | ❌ | Not included |
+| Business Automation Insights (BAI) | ❌ | Not included (use decision-ads-bai) |
+| BAW | ❌ | Not included |
+| ODM | ❌ | Not included |
 
 ---
 
-## Deployment Patterns and Optional Components
+## Configuration Details
 
-```properties
-CP4BA_INST_DEPL_PATTERNS="foundation,decisions_ads"
-CP4BA_INST_OPT_COMPONENTS="ads_runtime"
-```
-
----
-
-## Namespace
+### Deployment Patterns & Optional Components
 
 ```
-cp4ba-ads-prod
+sc_deployment_patterns: foundation,decisions_ads
+sc_optional_components: ads_runtime
+Namespace: cp4ba-ads-prod
 ```
 
----
+### Key Variables
 
-## ADS Configuration Details
-
-### Decision Designer (disabled in runtime-only)
-
-```yaml
-decision_designer:
-  enabled: false   # runtime-only: Designer NOT deployed
-```
-
-### Decision Runtime
-
-- **Enabled**: `true`
-- **Admin secret**: `ibm-dba-ads-runtime-secret`
-- **Profile size**: `small`
-- **Replicas**: 2
-- **Authentication mode**: `zen`
-- **Archive storage type**: `fs` (PVC, 1Gi)
-- **Autoscaling**: disabled
-- **BAI event emitter**: `enabled: false` (no BAI in this recipe)
-
-### Key difference from ADS Authoring
-
-In the runtime-only template, the `dc_ads_designer_datasource` is **commented out** — only `dc_ads_runtime_datasource` and `dc_icn_datasource` are active:
-
-```yaml
-datasource_configuration:
-  ##  dc_ads_designer_datasource:    ← COMMENTED OUT (not needed)
-  ##    ...
-
-  dc_ads_runtime_datasource:         ← ACTIVE
-    current_schema: "adsrt"
-    database_name: "ads_prod_adsruntimedb"
-    ...
-
-  dc_icn_datasource:                 ← ACTIVE (required even in runtime)
-    database_name: "ads_prod_icn"
-    ...
-```
-
-### Decision Runtime Service Resources
-
-| Resource | Request | Limit |
-|---|---|---|
-| CPU | 500m | 2000m |
-| Memory | 2Gi | 3Gi |
-| Ephemeral Storage | 100Mi | 1000Mi |
-
-### Decision Selection Configuration
-
-```yaml
-decision_selection:
-  threads: 1
-  update_interval: 120000   # 2 minutes
-  query_interval: 1000      # 1 second
-  cache:
-    config:
-      expiry: ''
-      resources: "<heap unit=\"entries\">100</heap>"
-```
-
----
-
-## Database Configuration
-
-| Datasource key | Database Name | Schema/User | Purpose |
-|---|---|---|---|
-| `dc_ads_runtime_datasource` | `ads_prod_adsruntimedb` | `adsrt` | ADS Runtime data |
-| `dc_icn_datasource` | `ads_prod_icn` | `icn` | IBM Content Navigator |
-
-> The `dc_ads_designer_datasource` is NOT present in the runtime template — it is commented out.
-
-**DB Server**: PostgreSQL 18.4 (OSS), SSL-only, port 5432  
-**SQL template**: `db-statements-ref-ads.sql`
-
-### DB Secrets
-
-| Secret | Purpose |
+| Variable | Value |
 |---|---|
-| `ibm-ads-runtime-database` | PostgreSQL credentials for ADS Runtime |
-| `ibm-dba-ads-runtime-secret` | ADS Runtime admin secret |
+| `CP4BA_INST_ENV` | `ads-prod` |
+| `CP4BA_INST_NAMESPACE` | `cp4ba-ads-prod` |
+| `CP4BA_INST_DEPL_PATTERNS` | `foundation,decisions_ads` |
+| `CP4BA_INST_OPT_COMPONENTS` | `ads_runtime` |
+| `CP4BA_INST_DEPL_PROFILE_SIZE` | `small` |
 
----
+### ADS Runtime Configuration
 
-## Storage
+```yaml
+ads_configuration:
+  decision_runtime:
+    enabled: true
+    # DB: ads_prod_adsruntimedb
+  decision_designer:
+    enabled: false
+```
 
-| Class variable | Value |
+### Databases Required (PostgreSQL)
+
+| Database | Purpose |
 |---|---|
-| File (CephFS) | `ocs-external-storagecluster-cephfs` |
-| Block (Ceph RBD) | `ocs-external-storagecluster-ceph-rbd` |
+| `ads_prod_adsruntimedb` | ADS Decision Runtime state |
+| `ads_prod_icn` | IBM Content Navigator (foundation) |
+| `ads_prod_gcd` | Global Configuration DB (foundation) |
 
 ---
 
-## LDAP / IAM
+## Installation Commands
 
-- Local OpenLDAP pod deployed in-namespace
-- IAM admin: `cpadmin`
-
----
-
-## Rolling Update Strategy
-
-```yaml
-rolling_update:
-  max_unavailable: 1
-  max_surge: 1
-```
-
----
-
-## TLS Configuration
-
-```yaml
-tls:
-  allow_self_signed: true
-  verify_hostname: false
-```
-
----
-
-## Typical Deployment Topology
-
-```
-Authoring Namespace (cp4ba-ads-auth)          Runtime Namespace (cp4ba-ads-prod)
-  ┌─────────────────────┐                        ┌─────────────────────┐
-  │ ADS Decision        │  publish archives       │ ADS Decision        │
-  │ Designer            │ ──────────────────────► │ Runtime             │
-  │ + BAS               │  (via Git + deploy)     │ (runtime-only)      │
-  └─────────────────────┘                        └─────────────────────┘
-```
-
----
-
-## Installation Command
+### Without ADS GenAI
 
 ```bash
-cd cp4ba-installations/scripts
-
-_PTC=$(pwd)/../configs26
-
-./cp4ba-one-shot-installation.sh \
-  -c ${_PTC}/env1-runtime-ads.properties \
-  -m \
-  -v 26.0.0 \
-  -k 26.0.0
+_VV=26.0.1
+_KK=26.0.0-IF001
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
+CONFIG_FILE=${_PTC}/env1-runtime-ads.properties
+./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
 ```
 
-**Flags**:
-- `-c` — path to the config properties file
-- `-m` — install CP4BA Case Package Manager (first time only)
-- `-v` — CP4BA version
-- `-k` — cert-kubernetes version
-- `-o` — (optional) skip operator installation
-- `-x` — (optional) enable trace output
+### With ADS GenAI enabled
+
+```bash
+export CP4BA_INST_ADS_GENAI_APIKEY="<your-ads-genai-api-key>"
+export CP4BA_INST_ADS_GENAI_PRJ_ID="<your-ads-genai-project-id>"
+
+_VV=26.0.1
+_KK=26.0.0-IF001
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
+CONFIG_FILE=${_PTC}/env1-runtime-ads.properties
+./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
+```
+
+### Parameters Reference
+
+| Parameter | Description |
+|---|---|
+| `-c ${CONFIG_FILE}` | Path to the properties configuration file |
+| `-m` | Install a fresh CP4BA Case Package Manager |
+| `-v ${_VV}` | CP4BA version (e.g., `26.0.1`) |
+| `-k ${_KK}` | cert-kubernetes version (e.g., `26.0.0-IF001`) |
 
 ---
 
-## References
+## Notes
 
-- [ADS Decision Runtime parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=parameters-decision-runtime)
-- [ADS shared parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=parameters-shared-by-decision-designer-decision-runtime)
-- [DICM overview](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=capabilities-decision-intelligence-client-managed-software)
+- This is the minimal ADS recipe: only the runtime is deployed, no authoring tools.
+- Decision services must be authored in a separate ADS Authoring environment and then deployed to this runtime.
+- The ADS Decision Runtime exposes a REST API for invoking deployed decision services.
+- For runtime with BAI analytics, use `recipe-name-decision-ads-bai.md`.
+- For authoring + runtime, use `recipe-name-authoring-decision-ads.md`.

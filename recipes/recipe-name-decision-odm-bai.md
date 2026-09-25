@@ -1,213 +1,106 @@
-# Recipe: ODM Runtime + BAI (Operational Decision Manager — Runtime with Business Automation Insights)
+# Recipe: Decision ODM + BAI (ODM Runtime with Business Automation Insights)
 
-> **Recipe suffix**: `decision-odm-bai`  
-> **Template**: `cp4ba-installations/templates26/cp4ba-cr-ref-decision-odm-bai.yaml`  
-> **Config file**: `cp4ba-installations/configs26/env1-runtime-odm-bai.properties`  
-> **CP4BA Version**: 26.0.0  
-> **Deployment type**: Production  
-> **Platform**: OpenShift Container Platform (OCP)
+**Created:** 2025-07-14T00:00:00Z  
+**Template:** `cp4ba-installations/templates26/cp4ba-cr-ref-decision-odm-bai.yaml`  
+**Config file:** `cp4ba-installations/configs26/env1-runtime-odm-bai.properties`
 
 ---
 
-## Purpose
+## Description
 
-This recipe deploys an **IBM Operational Decision Manager (ODM) Runtime-only** environment with **Business Automation Insights (BAI)** added. It deploys only the Decision Server Runtime (DSR) and Decision Server Console (DSC) — Decision Center and Decision Runner are disabled — but adds BAI for rule execution event processing, analytics, and dashboards.
+The **Decision ODM + BAI** recipe deploys IBM Operational Decision Manager (ODM) in runtime mode with **Business Automation Insights (BAI)** for rule decision analytics. It provides:
 
-This is the recommended pattern for **production execution namespaces** that require real-time decision monitoring via the Business Performance Center.
+- **ODM Decision Center** – business rule management
+- **ODM Rule Execution Server** – rule execution runtime
+- **ODM Decision Runner** – testing and simulation
+- **BAI** – rule execution event analytics and BPC dashboards
+- **Kafka** and **OpenSearch** – event streaming and indexing
+
+This is the production ODM runtime with full analytics observability.
 
 ---
 
-## CP4BA Capabilities Deployed
+## CP4BA Capabilities
 
-| Capability | Status | Description |
+| Capability | Enabled | Notes |
 |---|---|---|
-| **Foundation (CPFS / Zen / IAM)** | ✅ Active | Platform services, web console, identity management |
-| **ODM Decision Center (DC)** | ❌ Disabled | `decisionCenter.enabled: false` |
-| **ODM Decision Runner (DR)** | ❌ Disabled | `decisionRunner.enabled: false` |
-| **ODM Decision Server Runtime (DSR)** | ✅ Active | Executes deployed rulesets |
-| **ODM Decision Server Console (DSC)** | ✅ Active | Management console |
-| **BAI (Business Automation Insights)** | ✅ Active | Event processing, Flink, BPC dashboards |
-| **OpenSearch** | ✅ Active | Event index and analytics |
-| **Kafka** | ✅ Active | Event streaming bus |
-| **BAS / BAStudio** | ❌ Not included | ODM does not require BAS |
+| Foundation / CPFS | ✅ | Always included |
+| ODM Decision Center | ✅ | Part of `decisions` pattern |
+| ODM Rule Execution Server | ✅ | Part of `decisions` pattern |
+| ODM Decision Runner | ✅ | Part of `decisions` pattern |
+| Business Automation Insights (BAI) | ✅ | `bai` optional component |
+| Kafka | ✅ | Required by BAI |
+| OpenSearch | ✅ | Required by BAI |
+| ADS | ❌ | Not included |
+| BAW | ❌ | Not included |
 
 ---
 
-## Deployment Patterns and Optional Components
+## Configuration Details
 
-```properties
-CP4BA_INST_DEPL_PATTERNS="foundation,decisions"
-CP4BA_INST_OPT_COMPONENTS="bai"
-```
-
-> **Note**: OpenSearch and Kafka are implicit dependencies of the `bai` component.
-
----
-
-## Namespace
+### Deployment Patterns & Optional Components
 
 ```
-cp4ba-odm-bai
+sc_deployment_patterns: foundation,decisions
+sc_optional_components: bai
+Namespace: cp4ba-odm-bai
 ```
 
----
+### Key Variables
 
-## ODM Configuration Details
+| Variable | Value |
+|---|---|
+| `CP4BA_INST_ENV` | `odm-bai` |
+| `CP4BA_INST_NAMESPACE` | `cp4ba-odm-bai` |
+| `CP4BA_INST_DEPL_PATTERNS` | `foundation,decisions` |
+| `CP4BA_INST_OPT_COMPONENTS` | `bai` |
 
-### Components matrix (runtime-only with BAI)
-
-| Component | Enabled | Replicas |
-|---|---|---|
-| Decision Center (DC) | ❌ `false` | — |
-| Decision Runner (DR) | ❌ `false` | — |
-| Decision Server Runtime (DSR) | ✅ `true` | 1 |
-| Decision Server Console (DSC) | ✅ (always) | 1 |
-
-### ODM BAI Kafka Topic
-
-Rule execution events are emitted to Kafka for BAI processing:
-
-```yaml
-odm_configuration:
-  customization:
-    bai_kafka_topic:   # leave empty for default, or set custom topic name
-```
-
----
-
-## BAI Configuration
+### BAI for ODM
 
 ```yaml
 bai_configuration:
-  settings:
-    egress: false
-  business_performance_center:
-    install: true
-    all_users_access: true
+  odm:
+    install: true    # ODM rule execution events
   bpmn:
-    install: false
-  bawadv:
-    install: false
-  content:
-    install: false
-  event_forwarder:
-    install: false
-  flink:
-    create_route: true
-  icm:
-    install: false
-  navigator:
     install: false
   ads:
     install: false
-  odm:
-    install: true    # ODM events enabled
 ```
 
-### BAI components activated
+### Databases Required (PostgreSQL)
 
-| Processor | Enabled | Reason |
-|---|---|---|
-| `odm` | ✅ | ODM Runtime is installed |
-| `ads` | ❌ | ADS not installed |
-| `bpmn` | ❌ | BAW not installed |
-| `content` | ❌ | FileNet not installed |
-
----
-
-## Database Configuration
-
-In the runtime-only template, `dc_odm_decisioncenter_datasource` is **NOT present**:
-
-| Datasource key | Database Name | User | Purpose |
-|---|---|---|---|
-| `dc_odm_datasource` | `odm_bai_odmdb` | `odm` | Shared DB config |
-| `dc_odm_decisionserver_datasource` | `odm_bai_odmdb` | `odm` | Decision Server Runtime config |
-
-> `dc_odm_decisioncenter_datasource` is absent — no Decision Center deployed.
-
-**DB Server**: PostgreSQL 18.4 (OSS), SSL-only, port 5432  
-**SQL template**: `db-statements-ref-odm.sql`
-
-### DB Secrets
-
-| Secret | Purpose |
+| Database | Purpose |
 |---|---|
-| `ibm-odm-db-secret` | PostgreSQL credentials for ODM |
-| `ibm-odm-keystore-secret` | ODM keystore password |
+| `odm_bai_odmdb` | ODM Decision Center + RES |
+| `odm_bai_icn` | IBM Content Navigator |
+| `odm_bai_gcd` | Global Configuration DB |
 
 ---
 
-## Resource Summary
-
-| Component | CPU Request | CPU Limit | Mem Request | Mem Limit |
-|---|---|---|---|---|
-| Decision Server Runtime | 500m | 2000m | 2Gi | 2Gi |
-| Decision Server Console | 500m | 2000m | 2Gi | 2Gi |
-
----
-
-## Storage
-
-| Class variable | Value |
-|---|---|
-| File (CephFS) | `ocs-external-storagecluster-cephfs` |
-| Block (Ceph RBD) | `ocs-external-storagecluster-ceph-rbd` |
-
----
-
-## LDAP / IAM
-
-- Local OpenLDAP pod deployed in-namespace
-- IAM admin: `cpadmin`
-
----
-
-## Typical Deployment Topology
-
-```
-Authoring Namespace (cp4ba-odm-auth)          Prod Runtime Namespace (cp4ba-odm-bai)
-  ┌──────────────────────┐                       ┌──────────────────────────────────┐
-  │ ODM Decision Center  │  deploy rulesets       │ ODM Decision Server Runtime      │
-  │ + Decision Runner    │ ─────────────────────► │ + DSC                            │
-  └──────────────────────┘                       │ + BAI (Flink + OpenSearch)        │
-                                                  │ + Kafka event streaming          │
-                                                  └──────────────────────────────────┘
-                                                           │
-                                                           ▼
-                                                  Business Performance Center
-                                                  (rule execution dashboards)
-```
-
----
-
-## Installation Command
+## Installation Commands
 
 ```bash
-cd cp4ba-installations/scripts
-
-_PTC=$(pwd)/../configs26
-
-./cp4ba-one-shot-installation.sh \
-  -c ${_PTC}/env1-runtime-odm-bai.properties \
-  -m \
-  -v 26.0.0 \
-  -k 26.0.0
+_VV=26.0.1
+_KK=26.0.0-IF001
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
+CONFIG_FILE=${_PTC}/env1-runtime-odm-bai.properties
+./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
 ```
 
-**Flags**:
-- `-c` — path to the config properties file
-- `-m` — install CP4BA Case Package Manager (first time only)
-- `-v` — CP4BA version
-- `-k` — cert-kubernetes version
-- `-o` — (optional) skip operator installation
-- `-x` — (optional) enable trace output
+### Parameters Reference
+
+| Parameter | Description |
+|---|---|
+| `-c ${CONFIG_FILE}` | Path to the properties configuration file |
+| `-m` | Install a fresh CP4BA Case Package Manager |
+| `-v ${_VV}` | CP4BA version (e.g., `26.0.1`) |
+| `-k ${_KK}` | cert-kubernetes version (e.g., `26.0.0-IF001`) |
 
 ---
 
-## References
+## Notes
 
-- [ODM configuration parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=parameters-operational-decision-manager)
-- [ODM decision management event processing walkthrough](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=events-decision-management-event-processing-walkthrough)
-- [BAI event processing parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=baip-event-processing-parameters)
-- [ODM overview](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=capabilities-operational-decision-manager)
+- Key difference from `recipe-name-decision-odm.md`: adds `bai` to optional components.
+- BAI collects ODM rule execution events for BPC dashboards.
+- Kafka and OpenSearch are automatically included when `bai` is in optional components.
+- For authoring mode with BAI, use `recipe-name-authoring-decision-odm-bai.md`.

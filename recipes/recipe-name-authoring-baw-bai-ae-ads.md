@@ -1,266 +1,155 @@
-# Recipe: BAW Authoring + BAI + Application Engine + ADS (Authoring)
+# Recipe: Authoring BAW + BAI + AE + ADS (Full BAW Authoring with ADS)
 
-> **Recipe suffix**: `authoring-baw-bai-ae-ads`  
-> **Template**: [`cp4ba-cr-ref-authoring-baw-bai-ae-ads.yaml`](../cp4ba-installations/templates26/cp4ba-cr-ref-authoring-baw-bai-ae-ads.yaml)  
-> **Config file**: [`env1-authoring-baw-bai-ae-ads.properties`](../cp4ba-installations/configs26/env1-authoring-baw-bai-ae-ads.properties)  
-> **Disclaimer**: These configurations are not intended for production environments. The purpose is purely educational.
-
----
-
-## Overview
-
-This recipe deploys the most comprehensive CP4BA authoring environment, combining:
-
-- **BAW Authoring** — Full Business Automation Workflow authoring (BPM + Case Management)
-- **Business Automation Insights (BAI)** — Real-time analytics with Kafka + OpenSearch
-- **Application Engine (AE)** — Low-code application authoring and runtime
-- **ADS (Automation Decision Services)** — AI-infused decision authoring and runtime
-
-This is the maximal authoring recipe, covering workflow processes, business applications, and intelligent decision automation in a single namespace.
+**Created:** 2025-07-14T00:00:00Z  
+**Template:** `cp4ba-installations/templates26/cp4ba-cr-ref-authoring-baw-bai-ae-ads.yaml`  
+**Config file:** `cp4ba-installations/configs26/env1-authoring-baw-bai-ae-ads.properties`
 
 ---
 
-## Deployment Details
+## Description
 
-| Property | Value |
-|---|---|
-| **Namespace** | `cp4ba-baw-bai-ae-ads-auth` |
-| **CR Name** | `icp4adeploy` |
-| **CR Kind** | `ICP4ACluster` |
-| **Deployment Type** | `Production` |
-| **Deployment Platform** | `OCP` |
-| **Profile Size** | `small` |
-| **CP4BA Version** | `26.0.0` |
-| **License Type** | `production` |
-| **FNCM License** | `production` |
-| **BAW License** | `production` |
+The **Authoring BAW + BAI + AE + ADS** recipe is the most comprehensive authoring recipe, combining:
+
+- Full BAW Authoring (BPM + Case Management)
+- Business Automation Insights (BAI) analytics
+- Application Engine (AE) with App Designer
+- **IBM Decision Intelligence / ADS** (Decision Designer + Decision Runtime)
+
+This recipe addresses organizations that want to author and run both workflow processes/cases **and** AI-augmented decision automation from a single environment.
 
 ---
 
-## CP4BA Patterns and Optional Components
+## CP4BA Capabilities
 
-```properties
-CP4BA_INST_DEPL_PATTERNS=foundation,workflow,application,decisions_ads
-CP4BA_INST_OPT_COMPONENTS=baw_authoring,bas,app_designer,ads_designer,ads_runtime,bai,pfs,kafka,opensearch,workflow_assistant,workplace_assistant
-```
-
----
-
-## Capabilities Deployed
-
-### 1. Foundation
-**Pattern**: `foundation`
-
-Provides the baseline platform services:
-- IBM Cloud Pak Foundational Services (CPFS/Zen): IAM, License Service, CP4D UI
-- IBM Content Navigator (ICN): web portal for content and workflow
-- Business Automation Studio (BAS): authoring IDE for processes, cases, decisions, and applications
-- Resource Registry: etcd-based capability registry
-- Business Team Service (BTS): team management for Case
-
-### 2. Business Automation Workflow – Authoring
-**Pattern**: `workflow` | **Optional component**: `baw_authoring`
-
-Full BAW Authoring environment:
-- **Workflow Center**: author, test, and publish BPMN processes and CMMN cases
-- **FileNet Content Platform Engine (CPE)**: document/object store management
-- **IBM Content Navigator (ICN)**: content browsing UI
-- **Workplace / workflow_assistant / workplace_assistant**: AI-assisted task experience
-
-**BAW databases** (PostgreSQL, SSL-enabled):
-
-| DB Variable | Purpose |
-|---|---|
-| `CP4BA_INST_GCD_DB_NAME` = `baw_bai_ae_ads_auth_gcd` | FNCM Global Configuration DB |
-| `CP4BA_INST_ICN_DB_NAME` = `baw_bai_ae_ads_auth_icn` | IBM Content Navigator |
-| `CP4BA_INST_DOCS_DB_NAME` = `baw_bai_ae_ads_auth_bawdocs` | BAW documents object store |
-| `CP4BA_INST_DOS_DB_NAME` = `baw_bai_ae_ads_auth_bawdos` | BAW design object store |
-| `CP4BA_INST_TOS_DB_NAME` = `baw_bai_ae_ads_auth_bawtos` | BAW target object store |
-| `CP4BA_INST_CONTENT_DB_NAME` = `baw_bai_ae_ads_auth_content` | Content object store |
-| `CP4BA_INST_OS1_DB_NAME` = `baw_bai_ae_ads_auth_os1` | Additional object store |
-| `CP4BA_INST_AWSDB_DB_NAME` = `baw_bai_ae_ads_auth_awsdb` | Advanced Work Services |
-| `CP4BA_INST_AWSDOCS_DB_NAME` = `baw_bai_ae_ads_auth_awsdocs` | AWS documents |
-
-### 3. Business Automation Insights (BAI)
-**Optional component**: `bai,kafka,opensearch`
-
-Real-time analytics and monitoring:
-- **Kafka** (Strimzi): event bus for business automation events
-- **OpenSearch**: analytics data store and Kibana-compatible dashboards
-- **BAI event processors**: BPMN (workflow), bawadv (case), ads (decision)
-
-### 4. Application Engine (AE / App Designer)
-**Pattern**: `application` | **Optional components**: `app_designer`
-
-Low-code application building and runtime:
-- **Application Designer**: visual app authoring inside BAS
-- **Application Engine runtime**: executes deployed CP4BA applications
-- **App databases** (PostgreSQL, SSL-enabled):
-
-| DB Variable | Purpose |
-|---|---|
-| `CP4BA_INST_AE_DB_NAME` = `baw_bai_ae_ads_auth_aaedb` | Application Engine DB |
-| `CP4BA_INST_AEOS_DB_NAME` = `baw_bai_ae_ads_auth_aeos` | App Engine Object Store |
-| `CP4BA_INST_APP_DB_NAME` = `baw_bai_ae_ads_auth_appdb` | Application DB |
-
-### 5. Automation Decision Services (ADS)
-**Pattern**: `decisions_ads` | **Optional components**: `ads_designer,ads_runtime`
-
-AI/ML-infused decision management:
-- **Decision Designer**: DMN-based visual decision model authoring, integrated with Git
-- **Decision Runtime**: high-throughput execution engine for deployed decision services
-- **Credentials Service**: manages Git and ML provider credentials
-- **REST API**: OpenAPI endpoint for invoking decisions
-
-**ADS databases** (PostgreSQL, SSL-enabled):
-
-| DB Variable | Purpose |
-|---|---|
-| `CP4BA_INST_ADS_DESIGNER_DB_NAME` = `baw_bai_ae_ads_auth_adsdesignerdb` | ADS Designer state store |
-| `CP4BA_INST_ADS_RUNTIME_DB_NAME` = `baw_bai_ae_ads_auth_adsruntimedb` | ADS Runtime state store |
-
-### 6. Process Federation Server (PFS)
-**Optional component**: `pfs`
-
-Federates task inboxes from this BAW authoring instance into a unified portal. Requires OpenSearch (already enabled via BAI).
-
----
-
-## Storage Configuration
-
-| Storage Class | Type | Default Value |
+| Capability | Enabled | Notes |
 |---|---|---|
-| File (RWX) | CephFS | `ocs-external-storagecluster-cephfs` |
-| Block (RWO) | Ceph RBD | `ocs-external-storagecluster-ceph-rbd` |
+| Foundation / CPFS | ✅ | Always included |
+| BAW Authoring (BPM + Case) | ✅ | `baw_authoring` optional component |
+| Business Automation Studio (BAS) | ✅ | `bas` optional component |
+| App Designer | ✅ | `app_designer` optional component |
+| Application Engine | ✅ | via `application` pattern |
+| ADS Decision Designer | ✅ | `ads_designer` optional component |
+| ADS Decision Runtime | ✅ | `ads_runtime` optional component |
+| IBM FileNet CPE | ✅ | Required by BAW |
+| IBM Content Navigator | ✅ | Required by BAW |
+| GraphQL API | ✅ | Enabled |
+| Business Automation Insights (BAI) | ✅ | `bai` optional component |
+| Process Federation Server (PFS) | ✅ | `pfs` optional component |
+| Kafka | ✅ | `kafka` optional component |
+| OpenSearch | ✅ | `opensearch` optional component |
+| Workflow AI Assistant | ✅ | When `CP4BA_INST_GENAI_ENABLED=true` |
+| Workplace AI Assistant | ✅ | When `CP4BA_INST_GENAI_ENABLED=true` |
+| ODM | ❌ | Not included |
 
 ---
 
-## Database Configuration
+## Configuration Details
 
-- **Type**: PostgreSQL (OSS, `postgres:18.1` by default)
-- **SSL**: Enforced (`CP4BA_INST_DB_ONLY_SSL=true`)
-- **Instance count**: 1 PostgreSQL StatefulSet shared across all components
-- **DB CR name**: `my-postgres-1-for-cp4ba-ssl`
-- **SQL template**: `db-statements-ref-baw-authoring.sql`
-- **TLS secret**: `my-db-tls-secret`
+### Deployment Patterns & Optional Components
 
----
-
-## LDAP and IAM Configuration
-
-- **Local LDAP**: deployed in namespace (`CP4BA_INST_LDAP=true`)
-- **IAM onboarding**: enabled (`CP4BA_INST_IAM=true`)
-- **IAM admin user**: `cpadmin`
-- **Pak admin user**: `cp4admin`
-- **Admin group**: `AdminsGroup`
-- **LDAP config file**: `_cfg-production-ldap-domain.properties`
-- **LDAP type**: `Custom` (OpenLDAP-compatible)
-
----
-
-## Operator Isolation
-
-This deployment uses maximum namespace isolation:
-
-```bash
-CP4BA_AUTO_PRIVATE_CATALOG=Yes
-CP4BA_AUTO_SEPARATE_OPERATOR=No
-CP4BA_AUTO_ALL_NAMESPACES=No
-CP4BA_AUTO_OPERATOR_NAMESPACE=cp4ba-baw-bai-ae-ads-auth
-CP4BA_AUTO_CS_SERVICE_NAMESPACE=cp4ba-baw-bai-ae-ads-auth
+```
+sc_deployment_patterns: foundation,workflow,application,decisions_ads
+sc_optional_components: baw_authoring,bas,app_designer,ads_designer,ads_runtime,bai,pfs,kafka,opensearch,workflow_assistant,workplace_assistant
+Namespace: cp4ba-baw-bai-ae-ads-auth
 ```
 
----
+### Key CR Sections
 
-## Custom XML Configuration
+All sections from `cp4ba-cr-ref-authoring-baw-bai-ae.yaml` plus:
+- `ads_configuration` – ADS Decision Designer + Decision Runtime
 
-This recipe supports custom Liberty and Lombardi XML configuration:
+### ADS Configuration
 
-| Variable | Value |
+```yaml
+ads_configuration:
+  decision_designer:
+    enabled: true
+    # DB: baw_bai_ae_ads_auth_adsdesignerdb
+  decision_runtime:
+    enabled: true
+    # DB: baw_bai_ae_ads_auth_adsruntimedb
+```
+
+### GenAI / WatsonX for ADS
+
+ADS supports GenAI integration for AI-augmented decision authoring:
+```bash
+export CP4BA_INST_ADS_GENAI_APIKEY="<your-ads-genai-api-key>"
+export CP4BA_INST_ADS_GENAI_PRJ_ID="<your-ads-genai-project-id>"
+```
+
+### Databases Required (PostgreSQL)
+
+Same as BAW+BAI+AE recipe, plus:
+
+| Database | Purpose |
 |---|---|
-| `CP4BA_INST_CUSTOM_XML_FOLDER_NAME` | `templates-custom-xml` |
-| `CP4BA_INST_LIBERTY_CUSTOM_XML_SECRET_NAME` | `my-liberty-custom-xml-secret` |
-| `CP4BA_INST_LOMBARDI_CUSTOM_XML_SECRET_NAME` | `my-lombardi-custom-xml-secret` |
-| `CP4BA_INST_LIBERTY_CUSTOM_XML_TEMPLATE_NAME` | `liberty-custom-xml-template-sample-custom-db` |
-| `CP4BA_INST_LOMBARDI_CUSTOM_XML_TEMPLATE_NAME` | `lombardi-custom-xml-template-sample-document` |
+| `baw_bai_ae_ads_auth_adsruntimedb` | ADS Decision Runtime state |
+| `baw_bai_ae_ads_auth_adsdesignerdb` | ADS Decision Designer models |
 
----
+### Storage
 
-## Installation Command
-
-Use the `cp4ba-one-shot-installation.sh` script from the `cp4ba-installations/scripts` directory.
-
-### Prerequisites
-
-Clone the required sibling repositories alongside this project:
-
-```bash
-git clone https://github.com/marcoantonioni/cp4ba-casemanager-setup
-git clone https://github.com/marcoantonioni/cp4ba-idp-ldap
-git clone https://github.com/marcoantonioni/cp4ba-utilities
-git clone https://github.com/marcoantonioni/cp4ba-logger
 ```
-
-### First-time installation (installs Case Package Manager)
-
-```bash
-cd cp4ba-installations/scripts
-
-./cp4ba-one-shot-installation.sh \
-  -c ../configs26/env1-authoring-baw-bai-ae-ads.properties \
-  -m \
-  -d /opt/cp4ba-cmgr
-```
-
-### Subsequent installations (reuse existing Case Package Manager)
-
-```bash
-cd cp4ba-installations/scripts
-
-./cp4ba-one-shot-installation.sh \
-  -c ../configs26/env1-authoring-baw-bai-ae-ads.properties \
-  -p /opt/cp4ba-cmgr/cert-kubernetes/scripts
-```
-
-### Test configuration only (dry run)
-
-```bash
-cd cp4ba-installations/scripts
-
-./cp4ba-one-shot-installation.sh \
-  -c ../configs26/env1-authoring-baw-bai-ae-ads.properties \
-  -t
-```
-
-### With trace enabled
-
-```bash
-cd cp4ba-installations/scripts
-
-./cp4ba-one-shot-installation.sh \
-  -c ../configs26/env1-authoring-baw-bai-ae-ads.properties \
-  -p /opt/cp4ba-cmgr/cert-kubernetes/scripts \
-  -x
+CP4BA_INST_SC_FILE: ocs-external-storagecluster-cephfs
+CP4BA_INST_SC_BLOCK: ocs-external-storagecluster-ceph-rbd
+CP4BA_INST_BAW_STORAGE_SIZE: 20Gi
 ```
 
 ---
 
-## Post-Installation Access
+## Installation Commands
 
-| Service | URL Pattern |
+### Standard (without ADS GenAI)
+
+```bash
+_VV=26.0.1
+_KK=26.0.0-IF001
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
+CONFIG_FILE=${_PTC}/env1-authoring-baw-bai-ae-ads.properties
+./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
+```
+
+### With ADS GenAI enabled
+
+```bash
+export CP4BA_INST_ADS_GENAI_APIKEY="<your-ads-genai-api-key>"
+export CP4BA_INST_ADS_GENAI_PRJ_ID="<your-ads-genai-project-id>"
+
+_VV=26.0.1
+_KK=26.0.0-IF001
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
+CONFIG_FILE=${_PTC}/env1-authoring-baw-bai-ae-ads.properties
+./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
+```
+
+### With RPA integration
+
+```bash
+_VV=26.0.2
+_KK=26.0.0-IF002
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
+CONFIG_FILE=${_PTC}/env1-authoring-baw-bai-ae-rpa.properties
+./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
+```
+
+*Last tested: 20260902*
+
+### Parameters Reference
+
+| Parameter | Description |
 |---|---|
-| CP4BA Console (Zen) | `https://cpd-cp4ba-baw-bai-ae-ads-auth.apps.<cluster-domain>` |
-| Workflow Center (BAW Authoring) | `https://cpd-cp4ba-baw-bai-ae-ads-auth.apps.<cluster-domain>/bas/...` |
-| App Designer | Accessible from BAStudio |
-| ADS Decision Designer | Accessible from BAStudio |
-| BAI / Business Performance Center | `https://cpd-cp4ba-baw-bai-ae-ads-auth.apps.<cluster-domain>/bai/...` |
+| `-c ${CONFIG_FILE}` | Path to the properties configuration file |
+| `-m` | Install a fresh CP4BA Case Package Manager |
+| `-v ${_VV}` | CP4BA version (e.g., `26.0.1`) |
+| `-k ${_KK}` | cert-kubernetes version (e.g., `26.0.0-IF001`) |
 
 ---
 
-## Reference
+## Notes
 
-- [CP4BA BAW Authoring parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=parameters-business-automation-workflow-authoring)
-- [CP4BA Application Engine parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=foundation-application-engine)
-- [CP4BA ADS documentation](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=capabilities-decision-intelligence-client-managed-software)
-- [CP4BA BAI documentation](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=baip-event-processing-parameters)
-- [CP4BA v26.0.0 documentation](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0)
+- This is the most feature-rich authoring recipe in the repository.
+- ADS Decision Designer allows authors to create DMN-based decision models.
+- ADS Decision Runtime executes deployed decision services via REST API.
+- When `CP4BA_INST_ADS_GENAI_APIKEY` is set, ADS Decision Designer can use AI assistance for rule authoring.
+- All BAW+BAI+AE components are included; refer to those recipe files for their specific configuration details.
+- An RPA integration variant exists (`env1-authoring-baw-bai-ae-rpa.properties`) that adds RPA capability to this combined recipe.

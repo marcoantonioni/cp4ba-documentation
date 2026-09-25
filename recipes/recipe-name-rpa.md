@@ -1,299 +1,114 @@
-# Recipe: RPA (Robotic Process Automation)
+# Recipe: RPA (Robotic Process Automation – Unmanaged)
 
-> **Recipe suffix**: `rpa`  
-> **Template**: [`cp4ba-cr-ref-rpa.yaml`](../cp4ba-installations/templates26/cp4ba-cr-ref-rpa.yaml)  
-> **Config file**: [`env1-runtime-rpa.properties`](../cp4ba-installations/configs26/env1-runtime-rpa.properties)  
-> **Disclaimer**: These configurations are not intended for production environments. The purpose is purely educational.
-
----
-
-## Overview
-
-This recipe deploys IBM Robotic Process Automation (RPA) on OpenShift. RPA is **not deployed via the standard `ICP4ACluster` CR** like other CP4BA capabilities. Instead, it uses:
-
-1. A minimal `ICP4ACluster` CR (foundation only) — to provide the IAM/Zen context for SSO
-2. A dedicated **IBM MQ Operator** — for RPA's internal messaging
-3. A dedicated **IBM RPA Operator** — which manages the `RpaServer` CR (instance + tenant)
-4. A **Microsoft SQL Server** pod — as the RPA database backend
+**Created:** 2025-07-14T00:00:00Z  
+**Template:** `cp4ba-installations/templates26/cp4ba-cr-ref-rpa.yaml`  
+**Config file:** `cp4ba-installations/configs26/env1-runtime-rpa.properties`
 
 ---
 
-## Deployment Details
+## Description
 
-| Property | Value |
-|---|---|
-| **Namespace** | `cp4ba-rpa` |
-| **CR Name** | `icp4adeploy` |
-| **CR Kind** | `ICP4ACluster` |
-| **Deployment Type** | `Production` |
-| **Deployment Platform** | `OCP` |
-| **Profile Size** | `small` |
-| **CP4BA Version** | `26.0.0` |
-| **License Type** | `production` |
+The **RPA** recipe deploys IBM Robotic Process Automation in **unmanaged mode** into a namespace that already contains (or will contain) CP4BA Foundation services.
 
----
+The `ICP4ACluster` CR for this recipe uses **only the `foundation` pattern** with no optional components. Its purpose is to establish the shared platform context (IAM, Zen UI, LDAP) that the IBM RPA Operator then integrates with for Single Sign-On.
 
-## CP4BA Patterns and Optional Components
+> **Important:** The RPA software itself (IBM MQ Operator + IBM RPA Operator + RpaServer CR + Microsoft SQL Server) is deployed **separately** by the RPA operator. The `ICP4ACluster` CR in this recipe provides only the IAM/Zen/CPFS foundation layer.
 
-```properties
-CP4BA_INST_DEPL_PATTERNS=foundation
-CP4BA_INST_OPT_COMPONENTS=
-```
+Two RPA deployment modes are available:
 
-> The `ICP4ACluster` CR in this recipe activates **only the Foundation pattern** (no workflow, no decisions, no content). This provides the Zen/IAM infrastructure that RPA integrates with for Single Sign-On.
-
----
-
-## Capabilities Deployed
-
-### 1. Foundation (CP4BA CR)
-**Pattern**: `foundation`
-
-Provides the baseline IAM/Zen platform:
-- IBM Cloud Pak Foundational Services (CPFS/Zen): IAM, License Service, CP4D UI
-- Resource Registry (etcd-based)
-
-**Foundation databases** (PostgreSQL, SSL-enabled):
-
-| DB Variable | Purpose |
-|---|---|
-| `CP4BA_INST_ICN_DB_NAME` = `rpa_icn` | IBM Content Navigator |
-| `CP4BA_INST_DB_BTS_USER` | Business Team Service |
-| `CP4BA_INST_DB_IM_USER` | Identity Management |
-| `CP4BA_INST_DB_ZEN_USER` | Zen/CPD control plane |
-
-### 2. IBM RPA (separate operator)
-**Operator channel**: `v3.3`  
-**Starting CSV**: `ibm-automation-rpa.v3.3.0`  
-**Operator image**: `icr.io/cpopen/ibm-rpa-operator-catalog:latest`
-
-The RPA Operator manages the full RPA lifecycle including:
-- RPA Server (robot execution engine)
-- Tenant management
-- Script repository
-- Attended / unattended automation control plane
-
-**RPA instance configuration:**
-
-| Parameter | Value |
-|---|---|
-| Instance name | `rpa` |
-| Tenant name | `ibm` |
-| Tenant owner | `cp4admin` |
-| Tenant owner email | `cp4admin@vuxprod.net` |
-
-### 3. IBM MQ (separate operator)
-**Operator channel**: `v3.9`  
-**Operator image**: `icr.io/cpopen/ibm-mq-operator-catalog@sha256:0a0bc44cde96ff5e855b2276c32e0abad79ec3c2fbbc95bdc9426d0ac046b5a6`
-
-MQ is required by RPA for internal asynchronous messaging between components.
-
----
-
-## RPA Database — Microsoft SQL Server
-
-RPA uses **Microsoft SQL Server** (not PostgreSQL). A SQL Server pod is deployed in the same namespace.
-
-| Parameter | Value |
-|---|---|
-| Image | `mcr.microsoft.com/mssql/server:2025-latest` |
-| SQL instance name | `SQLEXPRESS` |
-| Service account | `ibm-cp4ba-anyuid` |
-| DB secret | `rpa-mssql` |
-| DB admin user | `sa` |
-| DB admin password | `dem0s-dem0s` |
-| TCP port | `1433` |
-| NodePort (external) | `31433` |
-| PVC name | `mssql-data` |
-| PVC size | `8Gi` |
-| Deployment name | `rpa-mssql` |
-
-### SQL Server Databases
-
-RPA requires **5 SQL Server databases**:
-
-| Database | Connection string variable | Purpose |
+| Mode | Config file | Script |
 |---|---|---|
-| `address` | `CP4BA_INST_RPA_DB_CONN_PARAMS_ADDRESS` | Address book / user directory |
-| `automation` | `CP4BA_INST_RPA_DB_CONN_PARAMS_AUTOMATION` | Automation assets (scripts, bots) |
-| `knowledge` | `CP4BA_INST_RPA_DB_CONN_PARAMS_KNOWLEDGE` | Knowledge base for NLP |
-| `wordnet` | `CP4BA_INST_RPA_DB_CONN_PARAMS_WORDNET` | WordNet lexical database |
-| `audit` | `CP4BA_INST_RPA_DB_CONN_PARAMS_AUDIT` | Audit trail |
-
-### Connection String Format
-
-```
-Data Source=rpa-mssql-service.<namespace>.svc.cluster.local\SQLEXPRESS,1433;
-Initial Catalog=<db>;
-User ID=sa;Password=dem0s-dem0s;
-Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;
-ApplicationIntent=ReadWrite;MultiSubnetFailover=False
-```
+| **Unmanaged** (this recipe) | `env1-runtime-rpa.properties` | `cp4ba-one-shot-installation.sh` |
+| Managed (separate) | `env1-runtime-rpa-managed.properties` | `cp4ba-install-rpa.sh` (not covered here) |
 
 ---
 
-## Supporting PostgreSQL (Foundation only)
+## CP4BA Capabilities
 
-A small PostgreSQL StatefulSet is deployed for the Foundation databases (ICN, BTS, IM, Zen):
-
-| Parameter | Value |
-|---|---|
-| DB CR name | `my-postgres-1-for-cp4ba-ssl` |
-| SQL template | `db-statements-ref-zenbtsim.sql` |
-| Storage size | `10Gi` |
-| SSL-only | `true` |
-| OSS image | `postgres:18.4` |
-
----
-
-## Storage Configuration
-
-| Storage Class | Type | Default Value |
+| Capability | Enabled | Notes |
 |---|---|---|
-| File (RWX) | CephFS | `ocs-external-storagecluster-cephfs` |
-| Block (RWO) | Ceph RBD | `ocs-external-storagecluster-ceph-rbd` |
+| Foundation / CPFS | ✅ | IAM, Zen UI, LDAP, Navigator |
+| IBM RPA Operator | ✅ | Deployed by RPA operator (separate) |
+| IBM MQ | ✅ | Required by RPA (separate operator) |
+| BAW Authoring | ❌ | Not included |
+| ADS | ❌ | Not included |
+| ODM | ❌ | Not included |
+| BAI | ❌ | Not included |
+| Application Engine | ❌ | Not included |
 
 ---
 
-## LDAP and IAM Configuration
+## Configuration Details
 
-- **Local LDAP**: deployed in namespace (`CP4BA_INST_LDAP=true`)
-- **IAM onboarding**: enabled (`CP4BA_INST_IAM=true`)
-- **IAM admin user**: `cpadmin`
-- **Pak admin user**: `cp4admin`
-- **Admin group**: `AdminsGroup`
-- **LDAP config file**: `_cfg-production-ldap-domain.properties`
-- **LDAP type**: `Custom` (OpenLDAP-compatible)
-
----
-
-## Operator Isolation
-
-```bash
-CP4BA_AUTO_PRIVATE_CATALOG=Yes
-CP4BA_AUTO_SEPARATE_OPERATOR=No
-CP4BA_AUTO_ALL_NAMESPACES=No
-CP4BA_AUTO_OPERATOR_NAMESPACE=cp4ba-rpa
-CP4BA_AUTO_CS_SERVICE_NAMESPACE=cp4ba-rpa
-```
-
----
-
-## RPA SMTP Configuration
-
-RPA requires an SMTP server for notifications and tenant owner email delivery:
-
-| Parameter | Value |
-|---|---|
-| `CP4BA_INST_RPA_SMTP_USER` | `cp4admin` |
-| `CP4BA_INST_RPA_SMTP_PASSWORD` | `dem0s` |
-
----
-
-## Installation Command
-
-Use the `cp4ba-one-shot-installation.sh` script from the `cp4ba-installations/scripts` directory.
-
-### Prerequisites
-
-Clone the required sibling repositories alongside this project:
-
-```bash
-git clone https://github.com/marcoantonioni/cp4ba-casemanager-setup
-git clone https://github.com/marcoantonioni/cp4ba-idp-ldap
-git clone https://github.com/marcoantonioni/cp4ba-utilities
-git clone https://github.com/marcoantonioni/cp4ba-logger
-```
-
-### First-time installation (installs Case Package Manager)
-
-```bash
-cd cp4ba-installations/scripts
-
-./cp4ba-one-shot-installation.sh \
-  -c ../configs26/env1-runtime-rpa.properties \
-  -m \
-  -d /opt/cp4ba-cmgr
-```
-
-### Subsequent installations (reuse existing Case Package Manager)
-
-```bash
-cd cp4ba-installations/scripts
-
-./cp4ba-one-shot-installation.sh \
-  -c ../configs26/env1-runtime-rpa.properties \
-  -p /opt/cp4ba-cmgr/cert-kubernetes/scripts
-```
-
-### Test configuration only (dry run)
-
-```bash
-cd cp4ba-installations/scripts
-
-./cp4ba-one-shot-installation.sh \
-  -c ../configs26/env1-runtime-rpa.properties \
-  -t
-```
-
-### With trace enabled
-
-```bash
-cd cp4ba-installations/scripts
-
-./cp4ba-one-shot-installation.sh \
-  -c ../configs26/env1-runtime-rpa.properties \
-  -p /opt/cp4ba-cmgr/cert-kubernetes/scripts \
-  -x
-```
-
----
-
-## Architecture Diagram
+### Deployment Patterns & Optional Components
 
 ```
+sc_deployment_patterns: foundation
+sc_optional_components: (none)
 Namespace: cp4ba-rpa
-┌─────────────────────────────────────────────────────────┐
-│                                                         │
-│  ICP4ACluster CR (icp4adeploy)                          │
-│  ├── Foundation pattern only                            │
-│  │   ├── CPFS (Zen + IAM + License)                    │
-│  │   └── Resource Registry                              │
-│  └── PostgreSQL StatefulSet (Foundation DBs)            │
-│                                                         │
-│  IBM MQ Operator (channel: v3.9)                        │
-│  └── MQ instance (for RPA messaging)                    │
-│                                                         │
-│  IBM RPA Operator (channel: v3.3)                       │
-│  └── RpaServer CR                                       │
-│      ├── Instance: rpa                                  │
-│      └── Tenant: ibm (owner: cp4admin)                  │
-│                                                         │
-│  Microsoft SQL Server pod (mssql:2025-latest)           │
-│  ├── DB: address                                        │
-│  ├── DB: automation                                     │
-│  ├── DB: knowledge                                      │
-│  ├── DB: wordnet                                        │
-│  └── DB: audit                                          │
-│                                                         │
-│  OpenLDAP pod                                           │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
 ```
 
----
+### Shared Configuration
 
-## Post-Installation Access
+```yaml
+shared_configuration:
+  sc_deployment_type: "production"
+  sc_deployment_platform: "OCP"
+  sc_deployment_profile_size: "small"
+  sc_deployment_license: "production"
+  sc_image_repository: cp.icr.io
+  storage_configuration:
+    sc_dynamic_storage_classname: "ocs-external-storagecluster-cephfs"
+    sc_block_storage_classname: "ocs-external-storagecluster-ceph-rbd"
+  sc_iam:
+    default_admin_username: "cpadmin"
+  encryption_key_secret: ibm-iaws-shared-key-secret
+  root_ca_secret: icp4a-root-ca
+```
 
-| Service | URL Pattern |
+### Key Variables
+
+| Variable | Value |
 |---|---|
-| CP4BA Console (Zen) | `https://cpd-cp4ba-rpa.apps.<cluster-domain>` |
-| IBM RPA Control Center | Accessible from Zen / RPA operator route |
+| `CP4BA_INST_ENV` | `rpa` |
+| `CP4BA_INST_NAMESPACE` | `cp4ba-rpa` |
+| `CP4BA_INST_DEPL_PATTERNS` | `foundation` |
+| `CP4BA_INST_OPT_COMPONENTS` | _(empty)_ |
+| `CP4BA_INST_DEPL_PROFILE_SIZE` | `small` |
+| `CP4BA_INST_DB` | `true` |
+| `CP4BA_INST_LDAP` | `true` |
+| `CP4BA_INST_IAM` | `true` |
 
 ---
 
-## Reference
+## Installation Commands
 
-- [IBM RPA v30.0.x documentation](https://www.ibm.com/docs/en/rpa/30.0.x)
-- [CP4BA v26.0.0 documentation](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0)
-- [CPFS Foundational Services v4.x](https://www.ibm.com/docs/en/cloud-paks/foundational-services/4.x_cd)
+### Unmanaged RPA Deployment
+
+> Must be deployed into a namespace with Foundation services already present (or deployed simultaneously).
+
+```bash
+_VV=26.0.2
+_KK=26.0.0-IF002
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
+CONFIG_FILE=${_PTC}/env1-runtime-rpa.properties
+./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
+```
+
+### Parameters Reference
+
+| Parameter | Description |
+|---|---|
+| `-c ${CONFIG_FILE}` | Path to the properties configuration file |
+| `-m` | Install a fresh CP4BA Case Package Manager |
+| `-v ${_VV}` | CP4BA version (e.g., `26.0.2`) |
+| `-k ${_KK}` | cert-kubernetes version (e.g., `26.0.0-IF002`) |
+
+---
+
+## Notes
+
+- The `cp4ba-cr-ref-rpa.yaml` template is structurally identical to `cp4ba-cr-ref-foundation.yaml`.
+- For the **managed** RPA deployment, use `env1-runtime-rpa-managed.properties` with the `cp4ba-install-rpa.sh` script.
+- The IBM RPA Operator requires **Microsoft SQL Server** with 5 databases: `address`, `automation`, `knowledge`, `wordnet`, `audit`.
+- IBM MQ Operator channel: `v3.9`; IBM RPA Operator channel: `v3.3`.

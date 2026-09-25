@@ -4,7 +4,7 @@
 
 https://github.com/marcoantonioni/cp4ba-installations
 
-Last update 2026-08-27
+Last update 2026-09-25
 
 ---
 
@@ -113,35 +113,28 @@ Let me introduce CP4BA Chef
 
 ![alt text](OneClickChef.png "Hello I'm CP4BA Chef")
 
-[Recipe 1: BAW Authoring with BAI](recipes/recipe-authoring-baw-bai.md)
+### Authoring environments
 
-[Recipe 2: BAW Runtime with BAI](recipes/recipe-runtime-baw-bai.md)
+- [Recipe: BAW Authoring](recipes/recipe-name-authoring-baw.md)
+- [Recipe: BAW Authoring with BAI](recipes/recipe-name-authoring-baw-bai.md)
+- [Recipe: BAW Authoring + BAI + Application Engine](recipes/recipe-name-authoring-baw-bai-ae.md)
+- [Recipe: BAW Authoring + BAI + Application Engine + ADS](recipes/recipe-name-authoring-baw-bai-ae-ads.md)
+- [Recipe: WFPS Authoring with PFS and BAI](recipes/recipe-authoring-wfps-pfs-bai.md)
+- [Recipe: ADS Authoring](recipes/recipe-name-authoring-decision-ads.md)
+- [Recipe: ADS Authoring with BAI](recipes/recipe-name-authoring-decision-ads-bai.md)
+- [Recipe: ODM Authoring](recipes/recipe-name-authoring-decision-odm.md)
+- [Recipe: ODM Authoring with BAI](recipes/recipe-name-authoring-decision-odm-bai.md)
 
-[Recipe 3: Multiple BAW Runtimes with PFS](recipes/recipe-runtime-baw-double-pfs.md)
+### Runtime environments
 
-[Recipe 4: WFPS Authoring with PFS and BAI](recipes/recipe-authoring-wfps-pfs-bai.md)
-
-[Recipe 5: WFPS Runtime Foundation with PFS and BAI](recipes/recipe-runtime-wfps-pfs-bai-foundation.md)
-
-[Recipe 6: ADS Authoring](recipes/recipe-name-authoring-decision-ads.md)
-
-[Recipe 7: ADS Authoring with BAI](recipes/recipe-name-authoring-decision-ads-bai.md)
-
-[Recipe 8: ADS Runtime](recipes/recipe-name-decision-ads.md)
-
-[Recipe 9: ADS Runtime with BAI](recipes/recipe-name-decision-ads-bai.md)
-
-[Recipe 10: ODM Authoring](recipes/recipe-name-authoring-decision-odm.md)
-
-[Recipe 11: ODM Authoring with BAI](recipes/recipe-name-authoring-decision-odm-bai.md)
-
-[Recipe 12: ODM Runtime](recipes/recipe-name-decision-odm.md)
-
-[Recipe 13: ODM Runtime with BAI](recipes/recipe-name-decision-odm-bai.md)
-
-[Recipe 14: BAW Authoring + BAI + Application Engine + ADS](recipes/recipe-name-authoring-baw-bai-ae-ads.md)
-
-[Recipe 15: RPA Runtime](recipes/recipe-name-rpa.md)
+- [Recipe: BAW Runtime with BAI](recipes/recipe-runtime-baw-bai.md)
+- [Recipe: Multiple BAW Runtimes with PFS](recipes/recipe-runtime-baw-double-pfs.md)
+- [Recipe: WFPS Runtime Foundation with PFS and BAI](recipes/recipe-runtime-wfps-pfs-bai-foundation.md)
+- [Recipe: ADS Runtime](recipes/recipe-name-decision-ads.md)
+- [Recipe: ADS Runtime with BAI](recipes/recipe-name-decision-ads-bai.md)
+- [Recipe: ODM Runtime](recipes/recipe-name-decision-odm.md)
+- [Recipe: ODM Runtime with BAI](recipes/recipe-name-decision-odm-bai.md)
+- [Recipe: RPA Runtime](recipes/recipe-name-rpa.md)
 
 
 ## 📖 Additional Resources

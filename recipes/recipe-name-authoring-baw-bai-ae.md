@@ -1,170 +1,126 @@
-# Recipe: BAW Authoring + BAI + Application Engine
+# Recipe: Authoring BAW + BAI + AE (BAW Authoring with Application Engine)
 
-## Overview
+**Created:** 2025-07-14T00:00:00Z  
+**Template:** `cp4ba-installations/templates26/cp4ba-cr-ref-authoring-baw-bai-ae.yaml`  
+**Config file:** `cp4ba-installations/configs26/env1-authoring-baw-bai-ae.properties`
 
-| Attribute | Value |
-|-----------|-------|
-| **Template file** | [`cp4ba-cr-ref-authoring-baw-bai-ae.yaml`](../cp4ba-installations/templates26/cp4ba-cr-ref-authoring-baw-bai-ae.yaml) |
-| **Primary config** | [`env1-authoring-baw-bai-ae.properties`](../cp4ba-installations/configs26/env1-authoring-baw-bai-ae.properties) |
-| **CP4BA Version** | 26.0.0 |
-| **Deployment type** | Production (Authoring mode) |
-| **Platform** | OCP |
-| **Profile size** | small |
+---
 
-## Purpose
+## Description
 
-This recipe extends the [BAW Authoring + BAI](recipe-name-authoring-baw-bai.md) recipe by adding:
+The **Authoring BAW + BAI + AE** recipe extends the BAW+BAI authoring recipe by adding the **Application Engine (AE)** and **App Designer** capability. This provides:
 
-- **Application Engine (AE) with data persistence**: A dedicated Application Engine instance with its own database-backed object store, enabling persistent application state for Business Automation Applications deployed from BAS.
-- **Application pattern**: Activates the `application` CP4BA pattern alongside `workflow`.
-- **`app_designer`**: Application Designer component for building low-code applications.
+- Full BAW Authoring (BPM + Case) with BAI analytics
+- **Application Engine** – runtime for custom process applications
+- **App Designer** – low-code application builder integrated in BAS
+- IBM FileNet CPE, ICN, BAS, PFS, Kafka, OpenSearch
 
-Use this recipe when you need the full BAW Authoring + BAI stack **and** want to deploy and test Business Automation Applications with full persistence (not just ephemeral playback).
+This recipe is the recommended choice when you need to build and deploy custom process applications (App Designer apps) alongside traditional BAW processes.
+
+---
 
 ## CP4BA Capabilities
 
-### Patterns
+| Capability | Enabled | Notes |
+|---|---|---|
+| Foundation / CPFS | ✅ | Always included |
+| BAW Authoring (BPM + Case) | ✅ | `baw_authoring` optional component |
+| Business Automation Studio (BAS) | ✅ | `bas` optional component |
+| App Designer | ✅ | `app_designer` optional component |
+| Application Engine | ✅ | via `application` pattern |
+| IBM FileNet CPE | ✅ | Required by BAW |
+| IBM Content Navigator | ✅ | Required by BAW |
+| GraphQL API | ✅ | Enabled |
+| Business Automation Insights (BAI) | ✅ | `bai` optional component |
+| Process Federation Server (PFS) | ✅ | `pfs` optional component |
+| Kafka | ✅ | `kafka` optional component |
+| OpenSearch | ✅ | `opensearch` optional component |
+| Workflow AI Assistant | ✅ | When `CP4BA_INST_GENAI_ENABLED=true` |
+| Workplace AI Assistant | ✅ | When `CP4BA_INST_GENAI_ENABLED=true` |
+| ADS | ❌ | Not included |
+| ODM | ❌ | Not included |
+
+---
+
+## Configuration Details
+
+### Deployment Patterns & Optional Components
 
 ```
-foundation,workflow,application
+sc_deployment_patterns: foundation,workflow,application
+sc_optional_components: baw_authoring,bas,app_designer,bai,pfs,kafka,opensearch,workflow_assistant,workplace_assistant
+Namespace: cp4ba-baw-bai-ae-auth
 ```
 
-### Optional Components
+### Key CR Sections
 
-```
-baw_authoring,bas,app_designer,bai,pfs,kafka,opensearch,workflow_assistant,workplace_assistant
-```
+All sections from `cp4ba-cr-ref-authoring-baw-bai.yaml` plus:
+- `application_engine_configuration` (AE instance: `workspace`, type: development)
+- Additional CPE object stores: `AE`, `AEOS`, `APP`, `CHOS`, `AWS`, `AWSDOCS`
 
-## Capability Configuration Details
-
-### Foundation (CPFS + Zen + IAM)
-
-Always enabled. See [knowledge base §4](../knowledge-bases/knowledge.md#4-shared-configuration-concepts).
-
-### BAW Authoring
-
-Full BAW Authoring with BPM + Case + Content + AE integration. The template includes `appengine` embedded configuration within `workflow_authoring_configuration.appengine`.
-
-### BAS (Business Automation Studio)
-
-Full BAS setup with Playback Server. See [recipe-name-authoring-baw.md §BAS](recipe-name-authoring-baw.md#bas-business-automation-studio).
-
-### ECM / Content Platform Engine (CPE) + ICN
-
-Identical setup as [recipe-name-authoring-baw.md §ECM](recipe-name-authoring-baw.md#ecm--content-platform-engine-cpe).
-
-### BAI (Business Automation Insights)
-
-Same as [recipe-name-authoring-baw-bai.md §BAI](recipe-name-authoring-baw-bai.md#bai-business-automation-insights).
-
-### BAML
-
-Present for task prioritization. See [recipe-name-authoring-baw-bai.md §BAML](recipe-name-authoring-baw-bai.md#baml-business-automation-machine-learning).
-
-### Application Engine (AE) with Data Persistence
-
-This recipe enables `ae_data_persistence` implicitly via `app_designer` optional component and adds a dedicated `application_engine_configuration` section to the CR.
+### Application Engine Configuration
 
 ```yaml
-application_engine_configuration:
-  - name: workspace
-    admin_secret_name: icp4adeploy-workspace-aae-app-engine-admin-secret
-    admin_user: "cp4admin"
-    database:
-      # PostgreSQL connection for AE persistence
-    env:
-      # Environment-specific settings
-    session:
-      # Session configuration
-    data_persistence:
-      # Persistence settings referencing AEOS object store
+# Key variables
+CP4BA_INST_AE_PERSISTENCE_ENABLE: false
+CP4BA_INST_AE_OS_NAME: "AEOS"           # AE object store
+CP4BA_INST_AE_SERVER_ENV_TYPE: development
+CP4BA_INST_AE_NAME: workspace
+CP4BA_INST_AE_DB_TYPE: postgresql
 ```
 
-Key configuration variables:
-```bash
-CP4BA_INST_AE_PERSISTENCE_ENABLE="true"           # vs. "false" in base recipe
-CP4BA_INST_AE_OS_NAME="${AEOS_OBJSTORE_NAME}"      # references BAWINS1AEOS
-CP4BA_INST_AE_SERVER_ENV_TYPE="development"
-CP4BA_INST_AE_NAME="workspace"
-CP4BA_INST_AE_SECRET_NAME="icp4adeploy-workspace-aae-app-engine-admin-secret"
-CP4BA_INST_AE_DB_TYPE="postgresql"
+### Databases Required (PostgreSQL)
+
+Same as BAW+BAI recipe, plus:
+
+| Database | Purpose |
+|---|---|
+| `baw_bai_ae_auth_aaedb` | Application Engine database |
+| `baw_bai_ae_auth_aeos` | App Engine Object Store |
+| `baw_bai_ae_auth_appdb` | Application database |
+| `baw_bai_ae_auth_awsdb` | Advanced Work Services DB |
+| `baw_bai_ae_auth_awsdocs` | Advanced Work Services docs |
+
+### Storage
+
+```
+CP4BA_INST_SC_FILE: ocs-external-storagecluster-cephfs
+CP4BA_INST_SC_BLOCK: ocs-external-storagecluster-ceph-rbd
+CP4BA_INST_BAW_STORAGE_SIZE: 20Gi
 ```
 
-The Application Engine uses the `AEOS` object store backed by the `*_aeos` database.
+---
 
-### PFS (Process Federation Server)
+## Installation Commands
 
-Same as [recipe-name-authoring-baw-bai.md §PFS](recipe-name-authoring-baw-bai.md#pfs-process-federation-server).
-
-## Key Differences from recipe-name-authoring-baw-bai
-
-| Feature | BAW+BAI | BAW+BAI+AE |
-|---------|---------|-----------|
-| Patterns | `foundation,workflow` | `foundation,workflow,application` |
-| `app_designer` | ✗ | ✓ |
-| Application Engine | ephemeral | persistent (`ae_data_persistence=true`) |
-| AE Object Store | ✗ | ✓ (`AEOS`) |
-| AE Database | ✗ | ✓ (`*_aeos`) |
-| `application_engine_configuration` | ✗ | ✓ |
-
-## Database Configuration
-
-Uses BAW Authoring SQL template: `db-statements-ref-baw-authoring.sql`
-
-All databases from the base recipe plus:
-
-| Database | Variable | Purpose |
-|----------|----------|---------|
-| `*_aeos` | `CP4BA_INST_AEOS_DB_NAME` | Application Engine object store |
-| `*_aaedb` | `CP4BA_INST_AE_DB_NAME` | Application Engine database |
-
-CPE object stores include BAWINS1AEOS (Application Engine Object Store) and BAWINS1APP (Application Object Store).
-
-BAI event emitter:
-```bash
-CP4BA_INST_BAI_OBJECTSTORE_CONTENT_EVENT_ENABLED="true"
-```
-
-## Infrastructure
-
-| Component | Configuration |
-|-----------|--------------|
-| PostgreSQL | 1 instance, SSL-enabled, in-namespace |
-| OpenLDAP | 1 instance, in-namespace |
-| Storage (File) | `ocs-external-storagecluster-cephfs` |
-| Storage (Block) | `ocs-external-storagecluster-ceph-rbd` |
-| DB Storage | 10 Gi |
-| BAW File Store | 20 Gi (dynamic) |
-
-Network policy: uses `allow-all` template by default:
-```bash
-CP4BA_INST_NP_TEMPLATE_1="../templates-networkpolicies/mutually-exclusive/my-network-policy-sample-allow-all.yaml"
-```
-
-## Installation Command
+### Standard
 
 ```bash
+_VV=26.0.2
+_KK=26.0.0-IF002
 _PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
-_VV=26.0.0
-_KK=26.0.0
 CONFIG_FILE=${_PTC}/env1-authoring-baw-bai-ae.properties
 ./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
 ```
 
-### With GenAI
+*Last tested: 20260806*
 
-```bash
-export CP4BA_INST_GENAI_ENABLED="true"
-export CP4BA_INST_GENAI_WX_APIKEY="<your-ibm-cloud-api-key>"
-export CP4BA_INST_GENAI_WX_PRJ_ID="<your-watsonx-project-id>"
+### Parameters Reference
 
-./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
-```
+| Parameter | Description |
+|---|---|
+| `-c ${CONFIG_FILE}` | Path to the properties configuration file |
+| `-m` | Install a fresh CP4BA Case Package Manager |
+| `-v ${_VV}` | CP4BA version (e.g., `26.0.2`) |
+| `-k ${_KK}` | cert-kubernetes version (e.g., `26.0.0-IF002`) |
 
-## References
+---
 
-- [BAW Authoring Parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=parameters-business-automation-workflow-authoring)
-- [Application Engine Parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=foundation-application-engine)
-- [BAI Event Processing Parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=baip-event-processing-parameters)
-- [CP4BA 26.0.0 Documentation](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0)
-- [IBM BAW Documentation](https://www.ibm.com/docs/en/baw/26.0.x)
+## Notes
+
+- This recipe adds `application` to the deployment patterns compared to `authoring-baw-bai`.
+- The App Designer component (`app_designer`) is the BAS-integrated low-code application authoring tool.
+- The Application Engine (`workspace` instance) uses `development` environment type for authoring use cases.
+- AE data persistence is disabled by default (`CP4BA_INST_AE_PERSISTENCE_ENABLE=false`).
+- Additional CPE object stores (`AE`, `AEOS`, `APP`, `AWS`, `AWSDOCS`) are required compared to the base BAW recipe.
+- `CP4BA_INST_LIBERTY_CUSTOM_XML_TEMPLATE_NAME=liberty-custom-xml-template-sample-custom-db` (note: different from basic BAW recipe).

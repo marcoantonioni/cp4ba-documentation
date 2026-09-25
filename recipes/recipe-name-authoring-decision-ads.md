@@ -1,196 +1,137 @@
-# Recipe: ADS Authoring (Decision Intelligence — Authoring)
+# Recipe: Authoring Decision ADS (ADS Authoring – no BAI)
 
-> **Recipe suffix**: `authoring-decision-ads`  
-> **Template**: `cp4ba-installations/templates26/cp4ba-cr-ref-authoring-decision-ads.yaml`  
-> **Config file**: `cp4ba-installations/configs26/env1-authoring-ads.properties`  
-> **CP4BA Version**: 26.0.0  
-> **Deployment type**: Production  
-> **Platform**: OpenShift Container Platform (OCP)
+**Created:** 2025-07-14T00:00:00Z  
+**Template:** `cp4ba-installations/templates26/cp4ba-cr-ref-authoring-decision-ads.yaml`  
+**Config file:** `cp4ba-installations/configs26/env1-authoring-ads.properties`
 
 ---
 
-## Purpose
+## Description
 
-This recipe deploys an **ADS (Automation Decision Services) Authoring** environment. It provides both the Decision Designer (web-based IDE) and the Decision Runtime (execution engine) within the same namespace, backed by Business Automation Studio (BAS/BAStudio) as the authoring shell.
+The **Authoring Decision ADS** recipe deploys IBM Decision Intelligence Client Managed Software (ADS, also known as DICM) in full authoring mode:
 
-This is the recommended starting point for teams building AI-powered decision services with IBM Decision Intelligence Client Managed Software (DICM / ADS).
+- **Decision Designer** – visual DMN-based decision model authoring
+- **Decision Runtime** – execution engine for deployed decision services
+- **Business Automation Studio (BAS)** – integrated authoring UI
+
+This recipe is for teams focused on decision automation using AI-augmented decision modeling without BAW workflow capabilities.
 
 ---
 
-## CP4BA Capabilities Deployed
+## CP4BA Capabilities
 
-| Capability | Status | Description |
+| Capability | Enabled | Notes |
 |---|---|---|
-| **Foundation (CPFS / Zen / IAM)** | ✅ Active | Platform services, web console, identity management |
-| **ADS Decision Designer** | ✅ Active | Web IDE for authoring decision models and rules |
-| **ADS Decision Runtime** | ✅ Active | Executes deployed decision archives |
-| **Business Automation Studio (BAS)** | ✅ Active | Authoring shell required by ADS Designer |
-| **BAI (Business Automation Insights)** | ❌ Not included | BAI event emitter is present but disabled |
-| **OpenSearch / Kafka** | ❌ Not included | Not deployed in this recipe |
+| Foundation / CPFS | ✅ | Always included |
+| ADS Decision Designer | ✅ | `ads_designer` optional component |
+| ADS Decision Runtime | ✅ | `ads_runtime` optional component |
+| Business Automation Studio (BAS) | ✅ | `bas` optional component |
+| Business Automation Insights (BAI) | ❌ | Not included (use authoring-decision-ads-bai) |
+| BAW Authoring | ❌ | Not included |
+| ODM | ❌ | Not included |
+| Application Engine | ❌ | Not included |
 
 ---
 
-## Deployment Patterns and Optional Components
+## Configuration Details
 
-```properties
-CP4BA_INST_DEPL_PATTERNS="foundation,decisions_ads"
-CP4BA_INST_OPT_COMPONENTS="ads_designer,ads_runtime,bas"
-```
-
----
-
-## Namespace
+### Deployment Patterns & Optional Components
 
 ```
-cp4ba-ads-auth
+sc_deployment_patterns: foundation,decisions_ads
+sc_optional_components: ads_designer,ads_runtime,bas
+Namespace: cp4ba-ads-auth
 ```
 
----
+### Key CR Sections
 
-## ADS Configuration Details
+- `shared_configuration` – deployment license, storage, IAM, image repo
+- `ldap_configuration` – OpenLDAP with SCIM
+- `datasource_configuration` – PostgreSQL connections for ADS designer and runtime
+- `bastudio_configuration` – BAS configuration
+- `ads_configuration` – ADS Decision Designer + Runtime
+- `ecm_configuration` – CPE (required by foundation/BAS)
+- `navigator_configuration` – IBM Content Navigator
 
-### Decision Designer
-
-- **Enabled**: `true`
-- **Admin secret**: `ibm-dba-ads-designer-secret`
-- **Profile size**: `small`
-- Connects to BAS for the authoring UI shell
-- Supports Git integration for storing decision projects (requires `CP4BA_INST_GIT_ENABLED=true` + token)
-- Supports GenAI/WML integration via `ads-genai-secret` (pre-created secret)
-
-### Decision Runtime
-
-- **Enabled**: `true` (required for authoring environment — test/preview)
-- **Admin secret**: `ibm-dba-ads-runtime-secret`
-- **Profile size**: `small`
-- **Replicas**: 2
-- **Authentication mode**: `zen` (uses CPFS/Zen SSO)
-- **Archive storage type**: `fs` (filesystem PVC, 1Gi)
-- **BAI event emitter**: `enabled: false` (no BAI in this recipe)
-- **Autoscaling**: disabled
-
-### BAI Event Emitter (pre-configured, disabled)
+### ADS Configuration
 
 ```yaml
-event_emitter:
-  enabled: false   # BAI is not installed — will be silently ignored
-  kafka_topic: "ads-decision-execution-common-data"
-  elasticsearch_index: "ads-decision-execution-common-data"
-  allow_missing_events: true
-  queue_capacity: 50000
-  dequeur_threads: 1
-```
-
-### Decision Runtime Service Resources
-
-| Resource | Request | Limit |
-|---|---|---|
-| CPU | 500m | 2000m |
-| Memory | 2Gi | 3Gi |
-| Ephemeral Storage | 100Mi | 1000Mi |
-
----
-
-## Business Automation Studio (BAS)
-
-BAS is the authoring IDE that hosts ADS Designer. It includes a Playback Server for testing decision services.
-
-```yaml
-bastudio_configuration:
-  admin_user: "cp4admin"
-  database:
-    host: <postgresql-host>
-    name: ads_auth_baw_1
-    port: "5432"
-    type: postgresql
-  playback_server:
-    admin_user: "cp4admin"
+ads_configuration:
+  decision_designer:
+    enabled: true
     database:
-      host: <postgresql-host>
-      name: ads_auth_appdb
-      port: "5432"
-      type: postgresql
-  resources:
-    bastudio:
-      limits:
-        cpu: '5000m'
-        memory: 3096Mi
+      # DB: ads_auth_adsdesignerdb
+  decision_runtime:
+    enabled: true
+    database:
+      # DB: ads_auth_adsruntimedb
 ```
 
----
+### GenAI / WatsonX for ADS
 
-## Database Configuration
+```bash
+export CP4BA_INST_ADS_GENAI_APIKEY="<your-ads-genai-api-key>"
+export CP4BA_INST_ADS_GENAI_PRJ_ID="<your-ads-genai-project-id>"
+```
 
-| Datasource | Database Name | Schema/User | Purpose |
-|---|---|---|---|
-| `dc_ads_designer_datasource` | `ads_auth_adsdesignerdb` | `adsdes` | ADS Designer data |
-| `dc_ads_runtime_datasource` | `ads_auth_adsruntimedb` | `adsrt` | ADS Runtime data |
-| `dc_icn_datasource` | `ads_auth_icn` | `icn` | IBM Content Navigator (required by BAS) |
-| *(bastudio DB)* | `ads_auth_baw_1` | `bawadmin` | BAS main database |
-| *(playback DB)* | `ads_auth_appdb` | `pbk` | BAS Playback Server |
+### Databases Required (PostgreSQL)
 
-**DB Server**: PostgreSQL 18.4 (OSS), SSL-only, port 5432  
-**SQL template**: `db-statements-ref-ads.sql`
-
----
-
-## Storage
-
-| Class variable | Value |
+| Database | Purpose |
 |---|---|
-| File (CephFS) | `ocs-external-storagecluster-cephfs` |
-| Block (Ceph RBD) | `ocs-external-storagecluster-ceph-rbd` |
+| `ads_auth_adsdesignerdb` | ADS Decision Designer models |
+| `ads_auth_adsruntimedb` | ADS Decision Runtime state |
+| `ads_auth_icn` | IBM Content Navigator (foundation) |
+| `ads_auth_gcd` | Global Configuration DB (foundation) |
 
----
+### Storage
 
-## LDAP / IAM
-
-- Local OpenLDAP pod deployed in-namespace
-- Users from `_cfg-production-ldap-domain.properties` onboarded to IAM
-- IAM admin: `cpadmin`
-- Pak admin: `cp4admin`
-
----
-
-## GenAI Integration (optional)
-
-ADS includes a pre-configured GenAI secret reference (`ads-genai-secret`) for watsonx.ai integration. To activate:
-
-```bash
-export CP4BA_INST_ADS_GENAI_APIKEY="<your-ibm-cloud-api-key>"
-export CP4BA_INST_ADS_GENAI_PRJ_ID="<your-watsonx-project-id>"
-export CP4BA_INST_ADS_GENAI_ML_URL="https://us-south.ml.cloud.ibm.com"
+```
+CP4BA_INST_SC_FILE: ocs-external-storagecluster-cephfs
+CP4BA_INST_SC_BLOCK: ocs-external-storagecluster-ceph-rbd
 ```
 
 ---
 
-## Installation Command
+## Installation Commands
+
+### Without GenAI
 
 ```bash
-cd cp4ba-installations/scripts
-
-_PTC=$(pwd)/../configs26
-
-./cp4ba-one-shot-installation.sh \
-  -c ${_PTC}/env1-authoring-ads.properties \
-  -m \
-  -v 26.0.0 \
-  -k 26.0.0
+_VV=26.0.1
+_KK=26.0.0-IF001
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
+CONFIG_FILE=${_PTC}/env1-authoring-ads.properties
+./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
 ```
 
-**Flags**:
-- `-c` — path to the config properties file
-- `-m` — install a fresh CP4BA Case Package Manager (use only on first deployment)
-- `-v` — CP4BA version
-- `-k` — cert-kubernetes version
-- `-o` — (optional) skip operator installation if already deployed in namespace
-- `-x` — (optional) enable trace output
+### With ADS GenAI enabled
+
+```bash
+export CP4BA_INST_ADS_GENAI_APIKEY="<your-ads-genai-api-key>"
+export CP4BA_INST_ADS_GENAI_PRJ_ID="<your-ads-genai-project-id>"
+
+_VV=26.0.1
+_KK=26.0.0-IF001
+_PTC=/home/$USER/cp4ba-projects/cp4ba-installations/configs26
+CONFIG_FILE=${_PTC}/env1-authoring-ads.properties
+./cp4ba-one-shot-installation.sh -c ${CONFIG_FILE} -m -v ${_VV} -k ${_KK}
+```
+
+### Parameters Reference
+
+| Parameter | Description |
+|---|---|
+| `-c ${CONFIG_FILE}` | Path to the properties configuration file |
+| `-m` | Install a fresh CP4BA Case Package Manager |
+| `-v ${_VV}` | CP4BA version (e.g., `26.0.1`) |
+| `-k ${_KK}` | cert-kubernetes version (e.g., `26.0.0-IF001`) |
 
 ---
 
-## References
+## Notes
 
-- [ADS Decision Designer parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=parameters-decision-designer)
-- [ADS Decision Runtime parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=parameters-decision-runtime)
-- [ADS shared parameters](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=parameters-shared-by-decision-designer-decision-runtime)
-- [DICM overview](https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/26.0.0?topic=capabilities-decision-intelligence-client-managed-software)
+- This recipe uses `decisions_ads` pattern (not `decisions` which is used for ODM).
+- ADS Decision Designer provides a browser-based authoring environment for decision models (DMN, decision tables, predictive models).
+- The ADS REST API is exposed as an OpenAPI endpoint for invoking decisions programmatically.
+- For ADS with analytics, use `recipe-name-authoring-decision-ads-bai.md`.
+- For ADS runtime only (no authoring), use `recipe-name-decision-ads.md`.
